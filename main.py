@@ -61,7 +61,7 @@ def build_ua_roll_embed(success, failure, adv, disadv):
     # embed.set_footer(text=footer)
     return embed
 
-def build_coc_roll_embed(total, tens, units, success_level=None):
+def build_coc_roll_embed(total, tens, units, success_level=None, reason=None):
    
     if success_level is not None:
         if success_level == dice.coc.SuccessLevel.CRITICAL_SUCCESS:
@@ -87,6 +87,8 @@ def build_coc_roll_embed(total, tens, units, success_level=None):
         colour = 0x202225
 
     description = f"**{total - units}**{' '+str(tens) if len(tens) > 1 else ''} + **{units}** = **{total}**"
+    if reason:
+        description += f"\n**Reason**: {reason}"
     
     embed = discord.Embed(title=title, description=description, colour=colour)
     # embed.set_footer(text=footer)
@@ -118,7 +120,7 @@ async def on_message(message):
     # CoC Dice roll
     if (arguments := parse_command(message, ["!cocroll", "!coc", "!croll"])) is not None:
         print("test")
-        match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:bonus|b|\+|penalty|p|-|\s+)*)$", arguments)
+        match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:bonus|b|\+|penalty|p|-|\s+)*)(?:!\s*(?P<reason>.*))?$", arguments)
         if match:
             print(match.group('skill'), "---", match.group('modifiers'))
             # this is kinda janky, but if you just count 'b', 'p', '+', and '-'
@@ -127,21 +129,27 @@ async def on_message(message):
             negative_modifiers = match.group('modifiers').count('p') + match.group('modifiers').count('-')
             total_modifiers = positive_modifiers - negative_modifiers
 
-            # see if a skill value was given or not
-            if match.group('skill'):
-                # roll and also check what type of success it was
-                skill = int(match.group('skill'))
-                total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
-                # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
-                embed = build_coc_roll_embed(total, tens, units, success_level)
+            try:
+                # see if a skill value was given or not
+                if match.group('skill'):
+                    # roll and also check what type of success it was
+                    skill = int(match.group('skill'))
+                    total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
+                    # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
+                    embed = build_coc_roll_embed(total, tens, units, success_level, reason=match.group('reason'))
 
-            else:
-                # don't do success level checks and just output a dice roll number
-                total, tens, units = dice.coc.d100(total_modifiers)
-                # await message.channel.send(f"{tens} + {units} = {total}")
-                embed = build_coc_roll_embed(total, tens, units)
+                else:
+                    # don't do success level checks and just output a dice roll number
+                    total, tens, units = dice.coc.d100(total_modifiers)
+                    # await message.channel.send(f"{tens} + {units} = {total}")
+                    embed = build_coc_roll_embed(total, tens, units, reason=match.group('reason'))
 
-            await message.channel.send(embed=embed)
+                embed.set_footer(text=f"@{message.author.display_name}")
+                await message.channel.send(embed=embed)
+            
+            except dice.DiceError as error:
+                await message.channel.send(error.message)
+
 
         else:
             #TODO: add mini-tutorial here
@@ -154,12 +162,15 @@ async def on_message(message):
         try:
             success, failure, adv, disadv = dice.ua.roll(skill, difficulty, cancel_totals=False)
         except dice.DiceError as error:
-            await message.channel.send("Something went wrong: " + error.message)
+            await message.channel.send(error.message)
             return
         
         embed = build_ua_roll_embed(success, failure, adv, disadv)
         # embed = discord.Embed(title="Test title", description="Some random text goes here...", colour=C_SUCCESS_ADV)
+        embed.set_footer(text=f"@{message.author.display_name}")
+
         await message.channel.send(embed=embed)
+        
 
     # NPG generation
     if (arguments := parse_command(message, "!npc")) is not None:
@@ -168,7 +179,7 @@ async def on_message(message):
         await message.channel.send(embed=character.generate_embed())
 
     # NPG generation
-    if (arguments := parse_command(message, ["!rollstats", "!rollstat"])) is not None:
+    if (arguments := parse_command(message, ["!rollstats", "!rollstat", "!stats"])) is not None:
         print("rolling stats")
 
         low_stats = [dice.d(6, 3) * 5 for _ in range(5)]
