@@ -195,10 +195,19 @@ async def on_message(message):
         await message.channel.send(embed=character.generate_embed())
 
     # Random name
-    if (arguments := parse_command(message, "!name")) is not None:
+    #TODO: add support for makign a list of names
+    if (arguments := parse_command(message, ["!names", "!name"])) is not None:
         print("generating name")
-        name = npc.Character.generate_name()
-        embed = discord.Embed(title=f"{name}")
+        try:
+            amount = max(1, int(arguments.strip()))
+        except Exception as error:
+            amount = 1
+
+        names = [npc.Character.generate_name() for _ in range(amount)]
+        if amount > 1:
+            embed = discord.Embed(title=f"Random Names", description="\n".join(names))
+        else:
+            embed = discord.Embed(title=f"{names[0]}")
         await message.channel.send(embed=embed)
 
     # rolling PC stats

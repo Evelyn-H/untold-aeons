@@ -1,10 +1,12 @@
 import math
 import random
+import numpy as np
 import discord
 import dice
 
 from . import tables
 from . import traits
+from . import names
 
 # ideas:
 #    - description based on stats if possible otherwise random
@@ -58,14 +60,20 @@ class Character:
 
     @classmethod
     def generate_name(cls, gender=None):
-        if gender == "male":
-            first_name = random.choice(tables.names.male)
-        elif gender == "female":
-            first_name = random.choice(tables.names.female)
-        else:
-            first_name = random.choice(tables.names.male + tables.names.female)
+        # little helper function to pick an element from a list with weighted probability
+        def pick(l):
+            names, p = zip(*l)
+            total = sum(p)
+            return np.random.choice(names, p=list(map(lambda x: x / total, p)))
 
-        return first_name + " " + random.choice(tables.names.family)
+        if gender == "male":
+            first_name = pick(names.male)
+        elif gender == "female":
+            first_name = pick(names.female)
+        else:
+            first_name = pick(names.male + names.female)
+
+        return first_name + " " + pick(names.family)
 
     @classmethod
     def generate_occupation(cls):
