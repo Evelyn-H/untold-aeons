@@ -1,5 +1,7 @@
 import os
 import re
+import random
+import asyncio
 import discord
 import dice
 import npc
@@ -125,13 +127,6 @@ def parse_command(message, prefix):
             return message.content[len(prefix)+1:]
 
 @client.event
-async def on_ready():
-    print('Logged in as {0.user}'.format(client))
-    # set status message
-    await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="accursed flutes"))
-    
-
-@client.event
 async def on_message(message):
     if message.author == client.user:
         return
@@ -234,6 +229,25 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
 
+@client.event
+async def on_ready():
+    print('Logged in as {0.user}'.format(client))
+    # set status message
+    # await client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="accursed flutes"))
+    while True:
+        await asyncio.ensure_future(cycle_playing())
+    
+
+async def cycle_playing():
+    playing_message = random.choice([
+        (discord.ActivityType.listening, "accursed flutes"),
+        (discord.ActivityType.listening, "Erich Zann"),
+        (discord.ActivityType.watching, "the void"),
+        (discord.ActivityType.playing, "with dice"),
+        (discord.ActivityType.listening, "vanishing echoes"),
+    ])
+    await client.change_presence(activity=discord.Activity(type=playing_message[0], name=playing_message[1]))
+    await asyncio.sleep(random.randint(60,600))
     
 token = os.environ['BOT_TOKEN']
 client.run(token)
