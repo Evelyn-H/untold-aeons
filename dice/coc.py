@@ -18,7 +18,7 @@ def d100(modifiers=0):
     modifiers = 0: regular roll
     modifiers < 0: penalty dice
     """
-    units = d(10)
+    units = d(10) - 1
 
     tens = [
         10 * (d(10) - 1)  # the -1 ensures that it's in the range [0-9] instead of  [1-10]
