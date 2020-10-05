@@ -17,6 +17,25 @@ C_FAILURE_DISADV = 0x8a0f0f
 C_HARD_SUCCESS = 0x47ebeb
 C_CRITICAL_SUCCESS = C_SUCCESS_ADV #0x99eb47 #0xeb47eb
 
+coc_help_message = """\
+`!coc <modifiers>`: a d100 roll with optional bonus / penalty dice
+`!coc <skill> <modifiers>`: a skill check with the given skill value and optional bonus / penalty dice
+(alternatively, you can also use `!croll`, and `!cocroll` instead of `!coc`)
+
+Modifiers (i.e. bonus and penalty dice) can be added as follows:
+  - bonus dice: `bonus`, `b`, or `+`
+  - penalty dice: `penalty`, `p`, or `-`
+Modifiers will cancel out automatically if you include both bonus and penalty dice
+
+Examples:
+    `!coc`: simple d100 roll
+    `!coc +`: simple d100 roll with a bonus die
+    `!coc 72`: skill check with a skill of 72
+    `!coc 50+`: skill check with a bonus die
+    `!coc 20 penalty`: skill check with a penalty die
+    `!coc 50 ++-`: skill check with 2 bonus die and a penalty die, resulting in a single bonus die after cancelling out
+"""
+
 def build_ua_roll_embed(success, failure, adv, disadv):
     total_success = success - failure
     total_adv = adv - disadv
@@ -153,7 +172,9 @@ async def on_message(message):
 
         else:
             #TODO: add mini-tutorial here
-            await message.channel.send("Incorrect syntax")
+            embed = discord.Embed(title="Dice Roll Usage:", description=coc_help_message)
+            await message.channel.send(embed=embed)
+            # await message.channel.send("Incorrect syntax.\n\n" + coc_help_message)
 
     # UA dice roll
     if (arguments := parse_command(message, ["!uaroll", "!ua"])) is not None:
