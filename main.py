@@ -194,7 +194,14 @@ async def on_message(message):
         character = npc.Character()
         await message.channel.send(embed=character.generate_embed())
 
-    # NPG generation
+    # Random name
+    if (arguments := parse_command(message, "!name")) is not None:
+        print("generating name")
+        name = npc.Character.generate_name()
+        embed = discord.Embed(title=f"{name}")
+        await message.channel.send(embed=embed)
+
+    # rolling PC stats
     if (arguments := parse_command(message, ["!rollstats", "!rollstat", "!stats"])) is not None:
         print("rolling stats")
 
