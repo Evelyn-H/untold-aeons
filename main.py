@@ -199,7 +199,7 @@ async def on_message(message):
     if (arguments := parse_command(message, ["!names", "!name"])) is not None:
         print("generating name")
         try:
-            amount = max(1, int(arguments.strip()))
+            amount = min(20, max(1, int(arguments.strip())))
         except Exception as error:
             amount = 1
 
