@@ -7,17 +7,24 @@ import dice
 from . import tables
 from . import traits
 from . import names
+from . import occupations
 
 # ideas:
 #    - description based on stats if possible otherwise random
 #    - weigh random occupation towards ones with where the stats would be appropriate
 #    - optional "balanced" npcs, where ones with stats that ate too low / high are thrown out
 
+# little helper function to pick an element from a list with weighted probability
+def pick(l, p=None):
+    if not p:
+        l, p = zip(*l)
+    total = sum(p)
+    return np.random.choice(l, p=list(map(lambda x: x / total, p)))
+
 class Character:
     def __init__(self, name=None):
         self.gender = random.choice(["male", "female"])
         self.name = name if name else Character.generate_name(gender=self.gender)
-        self.occupation = Character.generate_occupation()
         self.STR = dice.d(6, 3) * 5
         self.CON = dice.d(6, 3) * 5
         self.DEX = dice.d(6, 3) * 5
@@ -55,17 +62,19 @@ class Character:
             self.damage_bonus = "+1d6"
             self.build = 2
 
+        self.occupation = self.generate_occupation()
+        #TODO: calculate credit reating based on occupation
         self.credit_rating = 0
+
+    @staticmethod
+    def z_score(value):
+        avg = 10.5
+        std = 3
+        return (value / 5 - avg) / std
 
 
     @classmethod
     def generate_name(cls, gender=None):
-        # little helper function to pick an element from a list with weighted probability
-        def pick(l):
-            names, p = zip(*l)
-            total = sum(p)
-            return np.random.choice(names, p=list(map(lambda x: x / total, p)))
-
         if gender == "male":
             first_name = pick(names.male)
         elif gender == "female":
@@ -75,9 +84,23 @@ class Character:
 
         return first_name + " " + pick(names.family)
 
-    @classmethod
-    def generate_occupation(cls):
-        return "Librarian"
+    def generate_occupation(self):
+        possibilities = [(
+            occupation, 
+            max(0, occupation.appropriateness(self) + 1)) 
+        for occupation in occupations.all]
+
+        possibilities.sort(key=lambda x: x[1], reverse=True)
+        # only choose from top 10
+        possibilities = possibilities[0:10]
+        for p in possibilities:
+            print(p[0].name, "\t", p[1])
+
+
+        m = max(possibilities, key=lambda x: x[1])
+        best = [o[0] for o in possibilities if o[1] == m[1]]
+        print(m, best)
+        return pick(possibilities)
 
     def generate_description(self):
         # traits = list(filter(lambda trait: trait != "", [
@@ -112,7 +135,7 @@ class Character:
         else:
             traits_str = ", ".join(character_traits[:-1]) + " and " + character_traits[-1]
 
-        description =  f"{self.name} is {'an' if traits_str.startswith(('a', 'e', 'i', 'o', 'u')) else 'a'}' {traits_str} {self.occupation}.\n"
+        description =  f"{self.name} is {'an' if traits_str.startswith(('a', 'e', 'i', 'o', 'u')) else 'a'} {traits_str} {self.occupation.name}.\n"
         description += f"{'She' if self.gender == 'female' else 'He'} is <>."
 
         return description
