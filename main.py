@@ -186,6 +186,65 @@ async def on_message(message):
         embed.set_footer(text=f"@{message.author.display_name}")
 
         await message.channel.send(embed=embed)
+
+
+    # Cthulhu Dark Dice roll
+    if (arguments := parse_command(message, ["!dark", "!cdark"])) is not None:
+        dice_pattern = r"(white|w|green|g|red|r|yellow|y|blue|b|human|h|occupation|o|insight|insanity|i|failure|f|\s+)"
+        match = re.match(r"^\s*(?P<dice>" + dice_pattern + r"*)(?:!\s*(?P<reason>.*))?$", arguments)
+        
+        #for brevity
+        def count(data, l):
+            return sum([data.count(s) for s in l])
+
+        if match.group('dice') and len(arguments.strip()) > 0:
+            split = list(filter(None, re.split(dice_pattern, match.group('dice'))))
+            print(split)
+
+            white = count(split, ['white', 'w', 'human', 'h', 'occupation', 'o'])
+            green = count(split, ['green', 'g', 'insight', 'insanity', 'i'])
+            red = count(split, ['red', 'r', 'failure', 'f'])
+            yellow = count(split, ['yellow', 'y'])
+            blue = count(split, ['blue', 'b'])
+
+            try:
+                # don't do success level checks and just output a dice roll number
+                white_d6 = dice.d(6, times=white, total=False)
+                green_d6 = dice.d(6, times=green, total=False)
+                red_d6 = dice.d(6, times=red, total=False)
+                yellow_d6 = dice.d(6, times=yellow, total=False)
+                blue_d6 = dice.d(6, times=blue, total=False)
+
+                if white > 20 or green > 20 or red > 20 or yellow > 20 or blue > 20:
+                    raise dice.DiceError("Azathoth curses you for using too many dice!")
+
+                title = f"Cthulhu Dark"
+                colour = 0x202225
+
+                description =  f""
+                description += f":white_circle:  **{'**, **'.join(map(str, sorted(white_d6, reverse=True)))}**\n" if white > 0 else ":white_circle:\n"
+                description += f":green_circle:  **{'**, **'.join(map(str, sorted(green_d6, reverse=True)))}**\n" if green > 0 else ":green_circle:\n"
+                description += f":red_circle:  **{'**, **'.join(map(str, sorted(red_d6, reverse=True)))}**\n" if red > 0 else ":red_circle:\n"
+                if yellow > 0:
+                    description += f":yellow_circle: **{'**, **'.join(map(str, sorted(yellow_d6, reverse=True)))}**\n"
+                if blue > 0:
+                    description += f":blue_circle:   **{'**, **'.join(map(str, sorted(blue_d6, reverse=True)))}**\n"
+                # description += f"```"
+
+
+                if match.group('reason'):
+                    description += f"\n**Reason**: {match.group('reason')}"
+            
+                embed = discord.Embed(title=title, description=description, colour=colour)
+                embed.set_footer(text=f"@{message.author.display_name}")
+                await message.channel.send(embed=embed)
+            
+            except dice.DiceError as error:
+                await message.channel.send(error.message)
+
+
+        else:
+            await message.channel.send("Incorrect syntax")
         
 
     # NPG generation
@@ -193,6 +252,14 @@ async def on_message(message):
         print("generating npc")
         character = npc.Character()
         await message.channel.send(embed=character.generate_embed())
+
+        n = 10000
+        d = {}
+        for _ in range(n):
+            c = npc.Character()
+            d[c.occupation.name] = d.get(c.occupation.name, 0) + 1
+
+        print(d)
 
     # Random name
     #TODO: add support for makign a list of names
