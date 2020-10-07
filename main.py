@@ -204,10 +204,10 @@ async def on_message(message):
                     description = "You understand the full horror behind the Universe and leave everyday life behind."
                 else:
                     title = "Increase Insight by one"
-                    description = f"You rolled {roll}"
+                    description = f"You rolled a {roll}"
             else:
                 title = "No change"
-                description = f"You rolled {roll}"
+                description = f"You rolled a {roll}"
             colour = 0x9947eb
 
             embed = discord.Embed(title=title, description=description, colour=colour)
