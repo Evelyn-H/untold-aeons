@@ -192,44 +192,102 @@ async def on_message(message):
     if (arguments := parse_command(message, ["!dark", "!cdark"])) is not None:
         dice_pattern = r"(white|w|green|g|red|r|yellow|y|blue|b|human|h|occupation|o|insight|insanity|i|failure|f|\s+)"
         match = re.match(r"^\s*(?P<dice>" + dice_pattern + r"*)(?:!\s*(?P<reason>.*))?$", arguments)
+        match_insight = re.match(r"^\s*(?P<insight>\d)\s*(?:!\s*(?P<reason>.*))?$", arguments)
         
-        #for brevity
-        def count(data, l):
-            return sum([data.count(s) for s in l])
+        if match_insight:
+            target = int(match_insight.group('insight'))
+            roll = dice.d(6)
+            print(roll)
+            if roll > target:
+                if target == 5:
+                    title = "You understand... *everything*"
+                    description = "You understand the full horror behind the Universe and leave everyday life behind."
+                else:
+                    title = "Increase Insight by one"
+                    description = ""
+            else:
+                title = "No change"
+                description = ""
+            colour = 0x9947eb
 
-        if match.group('dice') and len(arguments.strip()) > 0:
+            embed = discord.Embed(title=title, description=description, colour=colour)
+            embed.set_footer(text=f"@{message.author.display_name}")
+            await message.channel.send(embed=embed)
+
+
+        elif match and match.group('dice') and len(arguments.strip()) > 0:
             split = list(filter(None, re.split(dice_pattern, match.group('dice'))))
             print(split)
 
-            white = count(split, ['white', 'w', 'human', 'h', 'occupation', 'o'])
-            green = count(split, ['green', 'g', 'insight', 'insanity', 'i'])
-            red = count(split, ['red', 'r', 'failure', 'f'])
-            yellow = count(split, ['yellow', 'y'])
-            blue = count(split, ['blue', 'b'])
+            #for brevity
+            def count(data, l):
+                return sum([data.count(s) for s in l])
+
+            white_n = count(split, ['white', 'w', 'human', 'h', 'occupation', 'o'])
+            green_n = count(split, ['green', 'g', 'insight', 'insanity', 'i'])
+            red_n = count(split, ['red', 'r', 'failure', 'f'])
+            yellow_n = count(split, ['yellow', 'y'])
+            blue_n = count(split, ['blue', 'b'])
 
             try:
                 # don't do success level checks and just output a dice roll number
-                white_d6 = dice.d(6, times=white, total=False)
-                green_d6 = dice.d(6, times=green, total=False)
-                red_d6 = dice.d(6, times=red, total=False)
-                yellow_d6 = dice.d(6, times=yellow, total=False)
-                blue_d6 = dice.d(6, times=blue, total=False)
+                white_d6 = dice.d(6, times=white_n, total=False)
+                green_d6 = dice.d(6, times=green_n, total=False)
+                red_d6 = dice.d(6, times=red_n, total=False)
+                yellow_d6 = dice.d(6, times=yellow_n, total=False)
+                blue_d6 = dice.d(6, times=blue_n, total=False)
 
-                if white > 20 or green > 20 or red > 20 or yellow > 20 or blue > 20:
+                if white_n > 20 or green_n > 20 or red_n > 20 or yellow_n > 20 or blue_n > 20:
                     raise dice.DiceError("Azathoth curses you for using too many dice!")
 
-                title = f"Cthulhu Dark"
-                colour = 0x202225
+                # Interpretation
+                # quick helper function
+                def highest(l):
+                    return max(l) if len(l) > 0 else 0
 
-                description =  f""
-                description += f":white_circle:  **{'**, **'.join(map(str, sorted(white_d6, reverse=True)))}**\n" if white > 0 else ":white_circle:\n"
-                description += f":green_circle:  **{'**, **'.join(map(str, sorted(green_d6, reverse=True)))}**\n" if green > 0 else ":green_circle:\n"
-                description += f":red_circle:  **{'**, **'.join(map(str, sorted(red_d6, reverse=True)))}**\n" if red > 0 else ":red_circle:\n"
-                if yellow > 0:
-                    description += f":yellow_circle: **{'**, **'.join(map(str, sorted(yellow_d6, reverse=True)))}**\n"
-                if blue > 0:
-                    description += f":blue_circle:   **{'**, **'.join(map(str, sorted(blue_d6, reverse=True)))}**\n"
-                # description += f"```"
+                if yellow_n > 0 or blue_n > 0:
+                    title = "Custom"
+                    colour = 0x202225
+                
+                elif highest(red_d6) > highest(white_d6 + green_d6):
+                    title = "Failure!"
+                    colour = C_FAILURE_DISADV
+
+                else:
+                    title, colour = {
+                        6: ("Critical Success!", C_CRITICAL_SUCCESS),
+                        5: ("Great Success", C_SUCCESS_ADV),
+                        4: ("Success", C_SUCCESS),
+                        3: ("Partial Success", C_SUCCESS_DISADV),
+                        2: ("Partial Success, but...", C_FAILURE_ADV),
+                        1: ("*Juuuust* Barely", C_FAILURE),
+                    }[highest(white_d6 + green_d6)]
+
+                #TODO: only bold the highest value for each color
+                def format_dice_list(l):
+                    if len(l) == 0:
+                        return ""
+                    elif len(l) == 1:
+                        return f"**{l[0]}**"
+                    else:
+                        return f"**{l[0]}**, {', '.join(map(str, l[1:]))}"
+
+                description =  ""
+                if white_n > 0:
+                    description += f":white_circle: {format_dice_list(sorted(white_d6, reverse=True))}\n"
+                if green_n > 0:
+                    description += f":green_circle: {format_dice_list(sorted(green_d6, reverse=True))}\n"
+                if red_n > 0:
+                    description += f":red_circle: {format_dice_list(sorted(red_d6, reverse=True))}\n"
+                if yellow_n > 0 or blue_n > 0:
+                    description += "\n"
+                if yellow_n > 0:
+                    description += f":yellow_circle: {format_dice_list(sorted(yellow_d6, reverse=True))}\n"
+                if blue_n > 0:
+                    description += f":blue_circle: {format_dice_list(sorted(blue_d6, reverse=True))}\n"
+
+                if highest(green_d6) > highest(white_d6):
+                    description += f"\n**!Please roll an Insanity check!**\n"
 
 
                 if match.group('reason'):
