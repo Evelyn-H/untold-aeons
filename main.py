@@ -255,8 +255,8 @@ async def on_message(message):
 
                 else:
                     title, colour = {
-                        6: ("Critical Success!", C_CRITICAL_SUCCESS),
-                        5: ("Great Success", C_SUCCESS_ADV),
+                        6: ("More than you wanted!", C_CRITICAL_SUCCESS),
+                        5: ("Success, and...", C_SUCCESS_ADV),
                         4: ("Success", C_SUCCESS),
                         3: ("Partial Success", C_SUCCESS_DISADV),
                         2: ("Partial Success, but...", C_FAILURE_ADV),
@@ -287,7 +287,7 @@ async def on_message(message):
                     description += f":blue_circle: {format_dice_list(sorted(blue_d6, reverse=True))}\n"
 
                 if highest(green_d6) > highest(white_d6):
-                    description += f"\n**!Please roll an Insanity check!**\n"
+                    description += f"\n**!Please make an Insight Roll!**\n"
 
 
                 if match.group('reason'):
@@ -363,7 +363,8 @@ async def on_message(message):
         title = "Random PC stats"
         description =  f"3d6 x 5: **{low_stats}**\n"
         description += f"2d6+6 x 5: **{high_stats}**\n"
-        description += f"These rolls are {averageness}.\n\n" if averageness is not None else "\n"
+        description += f"Luck: **{dice.d(6, 3) * 5}**\n"
+        description += f"\nThese rolls are {averageness}.\n\n" if averageness is not None else "\n"
         description += f"Use the first set of numbers for STR, DEX, CON, APP, and POW.\nUse the second set for SIZ, INT, and EDU."
 
         embed = discord.Embed(title=title, description=description)
