@@ -328,7 +328,14 @@ async def on_message(message):
         except Exception as error:
             amount = 1
 
-        names = [npc.Character.generate_name() for _ in range(amount)]
+        gender = None
+        if arguments.strip() in ["female","woman"]:
+            gender = "female"
+
+        if arguments.strip() in ["male","man"]:
+            gender = "male"
+
+        names = [npc.Character.generate_name(gender=gender) for _ in range(amount)]
         if amount > 1:
             embed = discord.Embed(title=f"Random Names", description="\n".join(names))
         else:
