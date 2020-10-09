@@ -30,6 +30,9 @@ def d100(modifiers=0):
     else:
         total = units + max(tens)
 
+    if total == 0:
+        total = 100
+
     return total, tens, units
 
 def roll(skill, modifiers=0):
