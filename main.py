@@ -38,7 +38,10 @@ Examples:
     `!coc 50 ++-`: skill check with 2 bonus die and a penalty die, resulting in a single bonus die after cancelling out
 """
 
-def build_ua_roll_embed(success, failure, adv, disadv):
+def format_plural(n, singular, plural):
+        return (singular if abs(n) == 1 else plural)
+
+def build_ua_roll_embed(success, failure, adv, disadv, reason=None):
     total_success = success - failure
     total_adv = adv - disadv
     if total_success > 0 and total_adv > 0:
@@ -60,10 +63,6 @@ def build_ua_roll_embed(success, failure, adv, disadv):
         title = "Failure with Drawback"
         colour = C_FAILURE_DISADV
 
-
-    def format_plural(n, singular, plural):
-        return (singular if abs(n) == 1 else plural)
-
     description = ""
     description += f"{success} - {failure} = **"
     if total_success > 0:
@@ -77,6 +76,9 @@ def build_ua_roll_embed(success, failure, adv, disadv):
     else:
         description += str(-total_adv) + "** " + format_plural(total_adv, "drawback", "drawbacks")
     # description += f"  *({adv}/{disadv})*"
+
+    if reason:
+        description += f"\n\n**Reason**: {reason}"
     
     embed = discord.Embed(title=title, description=description, colour=colour)
     # embed.set_footer(text=footer)
@@ -143,6 +145,8 @@ async def on_message(message):
             negative_modifiers = match.group('modifiers').count('p') + match.group('modifiers').count('-')
             total_modifiers = positive_modifiers - negative_modifiers
 
+            reason = match.group('reason')
+
             try:
                 # see if a skill value was given or not
                 if match.group('skill'):
@@ -150,13 +154,13 @@ async def on_message(message):
                     skill = int(match.group('skill'))
                     total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
                     # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
-                    embed = build_coc_roll_embed(total, tens, units, success_level, reason=match.group('reason'))
+                    embed = build_coc_roll_embed(total, tens, units, success_level, reason=reason)
 
                 else:
                     # don't do success level checks and just output a dice roll number
                     total, tens, units = dice.coc.d100(total_modifiers)
                     # await message.channel.send(f"{tens} + {units} = {total}")
-                    embed = build_coc_roll_embed(total, tens, units, reason=match.group('reason'))
+                    embed = build_coc_roll_embed(total, tens, units, reason=reason)
 
                 embed.set_footer(text=f"@{message.author.display_name}")
                 await message.channel.send(embed=embed)
@@ -173,19 +177,57 @@ async def on_message(message):
 
     # UA dice roll
     if (arguments := parse_command(message, ["!uaroll", "!ua"])) is not None:
-        skill, difficulty = map(int, filter(None, map(str.strip, arguments.split(" "))))
-
-        try:
-            success, failure, adv, disadv = dice.ua.roll(skill, difficulty, cancel_totals=False)
-        except dice.DiceError as error:
-            await message.channel.send(error.message)
-            return
+        # skill, difficulty = map(int, filter(None, map(str.strip, arguments.split(" "))))
+        match = re.match(r"^\s*(?P<skill>\-?\d+)\s*(?P<difficulty>\d+)?\s*(?:!\s*(?P<reason>.*))?$", arguments)
         
-        embed = build_ua_roll_embed(success, failure, adv, disadv)
-        # embed = discord.Embed(title="Test title", description="Some random text goes here...", colour=C_SUCCESS_ADV)
-        embed.set_footer(text=f"@{message.author.display_name}")
+        if not match:
+            await message.channel.send("Incorrect syntax")
+            return
 
-        await message.channel.send(embed=embed)
+        # regular opposed-type roll
+        if match.group('skill') and match.group('difficulty'):
+            skill = int(match.group('skill'))
+            difficulty = int(match.group('difficulty'))
+
+            try:
+                success, failure, adv, disadv = dice.ua.roll(skill, difficulty, cancel_totals=False)
+            except dice.DiceError as error:
+                await message.channel.send(error.message)
+                return
+        
+            embed = build_ua_roll_embed(success, failure, adv, disadv, match.group('reason'))
+            # embed = discord.Embed(title="Test title", description="Some random text goes here...", colour=C_SUCCESS_ADV)
+            embed.set_footer(text=f"@{message.author.display_name}")
+
+            await message.channel.send(embed=embed)
+
+        # unopposed roll
+        elif match.group('skill'):
+            skill = int(match.group('skill'))
+
+            if skill == 0:
+                await message.channel.send("Skill can't be 0.")
+                return
+
+            try:
+                success, adv = dice.ua.roll_multiple(abs(skill))
+            except dice.DiceError as error:
+                await message.channel.send(error.message)
+                return
+
+            success_failure = format_plural(success, "success", "successes") if skill > 0 else format_plural(success, "failure", "failures")
+            adv_disadv = format_plural(adv, "advantage", "advantages") if skill > 0 else format_plural(adv, "drawback", "drawbacks")
+            title = f"**{success}** {success_failure}, **{adv}** {adv_disadv}"
+            colour = 0x202225
+            if match.group('reason'):
+                description = f"\n\n**Reason**: {match.group('reason')}"
+            else:
+                description = ""
+            embed = discord.Embed(title=title, description=description, colour=colour)
+            embed.set_footer(text=f"@{message.author.display_name}")
+
+            await message.channel.send(embed=embed)
+
 
 
     # Cthulhu Dark Dice roll
@@ -320,7 +362,6 @@ async def on_message(message):
         print(d)
 
     # Random name
-    #TODO: add support for makign a list of names
     if (arguments := parse_command(message, ["!names", "!name"])) is not None:
         print("generating name")
         try:
