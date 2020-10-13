@@ -24,14 +24,19 @@ def d100(modifiers=0):
         10 * (d(10) - 1)  # the -1 ensures that it's in the range [0-9] instead of  [1-10]
         for _ in range(abs(modifiers) + 1)  # always need one extra dice per modifier
     ]
+
+    def combine(tens: int, units: int):
+        if tens == 0 and units == 0:
+            return 100
+        else:
+            return tens + units
+
+    combined = list(map(lambda d: combine(d, units), tens))
     
     if modifiers >= 0:
-        total = units + min(tens)
+        total = min(combined)
     else:
-        total = units + max(tens)
-
-    if total == 0:
-        total = 100
+        total = max(combined)
 
     return total, tens, units
 
