@@ -44,9 +44,21 @@ async def cycle_playing():
         (discord.ActivityType.watching, "the end approach"),
         (discord.ActivityType.listening, "falling dice"),
         (discord.ActivityType.playing, "a dangerous game"),
+        # (discord.ActivityType.listening, "screams of the damned"),
+        (discord.ActivityType.watching, "the shadows advance"),
+        (discord.ActivityType.watching, "the stars align"),
+        (discord.ActivityType.watching, "your deepest regrets"),
+        (discord.ActivityType.listening, "incessant whispers"),
+        (discord.ActivityType.listening, "mad pipers"),
+        (discord.ActivityType.watching, "your sanity fade"),
+        (discord.ActivityType.listening, "approaching footsteps"),
+        (discord.ActivityType.listening, "your rushing heart"),
+        (discord.ActivityType.watching, "the flames rise"),
+        (discord.ActivityType.watching, "you sleep"),
+        (discord.ActivityType.playing, "with your life"),
     ])
     await client.change_presence(activity=discord.Activity(type=playing_message[0], name=playing_message[1]))
-    await asyncio.sleep(random.randint(60,600))
+    await asyncio.sleep(random.randint(60,300))
     
 token = os.environ['BOT_TOKEN']
 client.run(token)
