@@ -40,6 +40,10 @@ async def cycle_playing():
         (discord.ActivityType.watching, "the void"),
         (discord.ActivityType.playing, "with dice"),
         (discord.ActivityType.listening, "vanishing echoes"),
+        (discord.ActivityType.playing, "with fate"),
+        (discord.ActivityType.watching, "the end approach"),
+        (discord.ActivityType.listening, "falling dice"),
+        (discord.ActivityType.playing, "a dangerous game"),
     ])
     await client.change_presence(activity=discord.Activity(type=playing_message[0], name=playing_message[1]))
     await asyncio.sleep(random.randint(60,600))
