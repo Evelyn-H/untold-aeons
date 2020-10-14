@@ -1,7 +1,6 @@
 import math
 import random
 import numpy as np
-import discord
 import dice
 
 from . import tables
@@ -87,19 +86,20 @@ class Character:
     def generate_occupation(self):
         possibilities = [(
             occupation, 
-            max(0, occupation.appropriateness(self) + 1)) 
+            max(0, occupation.appropriateness(self)) + 1) 
         for occupation in occupations.all]
+        # print(possibilities)
 
         possibilities.sort(key=lambda x: x[1], reverse=True)
         # only choose from top 10
         possibilities = possibilities[0:10]
-        for p in possibilities:
-            print(p[0].name, "\t", p[1])
+        # for p in possibilities:
+        #     print(p[0].name, "\t", p[1])
 
 
         m = max(possibilities, key=lambda x: x[1])
         best = [o[0] for o in possibilities if o[1] == m[1]]
-        print(m, best)
+        # print(m, best)
         return pick(possibilities)
 
     def generate_description(self):
@@ -141,7 +141,7 @@ class Character:
         return description
 
     def generate_embed(self):
-        embed = discord.Embed(title=f"**{self.name}**, {self.age}", description="")
+        title = f"**{self.name}**, {self.age}"
 
         # text description
         description = self.generate_description() + "\n"
@@ -156,15 +156,7 @@ class Character:
         description += f"Hit points: {self.hp},  Luck: {self.luck},  Sanity: {self.sanity}\n"
         description += "```"
 
-        embed.description = description
-        
-        # embed.add_field(name="STR", value=self.STR)
-        # embed.add_field(name="CON", value=self.CON)
-        # embed.add_field(name="DEX", value=self.DEX)
-
-        # embed.add_field(name="————————————————————————————————", value=".", inline=False)
-
-        return embed
+        return {'title': title, 'description': description}
 
 if __name__ == "__main__":
     character = Character()
