@@ -67,4 +67,4 @@ class Bot:
                     return value
         else:
             if message.content.startswith(prefix):
-                return message.content[len(prefix)+1:]
+                return message.content[len(prefix):].lstrip()
