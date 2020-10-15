@@ -16,6 +16,11 @@ bot.register_command(commands.npc.generate_name, ["!names", "!name"], add_footer
 bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stats"], add_footer=False)
 
 
+@bot.command(["/croll"])
+def new_bot_help(message):
+    return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
+
+
 @client.event
 async def on_message(message):
     if message.author == client.user:

@@ -30,9 +30,9 @@ class Bot:
         The decorated function can return either a string or a dict with the optional fields of `title`, `description`, and `color`.
         """
         def actual_decorator(func):
+            self.register_command(func, prefix, add_footer)
             @functools.wraps(func)
             def wrapper(message):
-                self.register_command(func, prefix, add_footer)
                 return func(message)
             return wrapper
         return actual_decorator
