@@ -23,7 +23,7 @@ Examples:
     
 # CoC Dice roll
 def roll(message):
-    match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:bonus|b|\+|penalty|p|-|\s+)*)(?:!\s*(?P<reason>.*))?$", message)
+    match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:t|bonus|b|\+|penalty|p|-|\s+)*)(?:!\s*(?P<reason>.*))?$", message)
     if match:
         print(match.group('skill'), "---", match.group('modifiers'))
         # this is kinda janky, but if you just count 'b', 'p', '+', and '-'
