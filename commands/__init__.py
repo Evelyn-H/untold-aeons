@@ -41,6 +41,7 @@ class Bot:
         for command in self.commands:
             if (arguments := self._parse_command(message, command.prefix)) is not None:
                 # debug log
+                print(f"Message received: {message.content}")
                 print(f"Running command <{command.prefix}>")
                 # run the command processor
                 return_message = command(arguments)
