@@ -8,7 +8,7 @@ client = discord.Client()
 
 bot = commands.Bot()
 
-bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll"])
+bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
 bot.register_command(commands.npc.generate_npc, ["!npc"], add_footer=False)
