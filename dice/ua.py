@@ -21,7 +21,14 @@ def roll_multiple(n):
     return tuple([sum(x) for x in zip(*l)])
 
 def roll(skill, difficulty, cancel_totals=True):
-    success, adv = roll_multiple(skill) if skill > 0 else (0, 0)
+    if skill > 0:
+        success, adv = roll_multiple(skill)
+    elif skill == 0:
+        success = roll_one()[0] // 2
+        adv = 0
+    else:
+        success, adv = 0, 0
+
     failure, disadv = roll_multiple(difficulty) if difficulty > 0 else (0, 0)
     if cancel_totals:
         return (success - failure, adv - disadv)

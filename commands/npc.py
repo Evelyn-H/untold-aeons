@@ -1,3 +1,4 @@
+import re
 import dice
 import npc
 
@@ -16,17 +17,21 @@ def generate_npc(message):
 
 
 def generate_name(message):
-    try:
-        amount = min(20, max(1, int(message.strip())))
-    except Exception as error:
-        amount = 1
+    match = re.match(r"^\s*(?P<amount>\d+)?\s*(?P<gender>.+)?\s*$", message)
+    
+    if match:
+        amount = min(20, int(match.group('amount') or 1))
+    else:
+        return "Invalid syntax."
 
-    gender = None
-    if message.strip() in ["female","woman"]:
-        gender = "female"
+    if match.group('gender'):
+        if match.group('gender').strip() in ["female","woman"]:
+            gender = "female"
 
-    if message.strip() in ["male","man"]:
-        gender = "male"
+        if match.group('gender').strip() in ["male","man"]:
+            gender = "male"
+    else:
+        gender = None
 
     names = [npc.Character.generate_name(gender=gender) for _ in range(amount)]
     if amount > 1:
