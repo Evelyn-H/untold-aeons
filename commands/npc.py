@@ -17,21 +17,24 @@ def generate_npc(message):
 
 
 def generate_name(message):
-    match = re.match(r"^\s*(?P<amount>\d+)?\s*(?P<gender>.+)?\s*$", message)
+    match = re.match(r"^\s*(?P<amount>\d+)?\s*(?P<gender>[a-zA-Z]+)?\s*(?P<amount_2>\d+)?\s*$", message)
+    print(match.group('amount'), match.group('gender'), match.group('amount_2'))
     
     if match:
-        amount = min(20, int(match.group('amount') or 1))
+        amount = min(20, int(match.group('amount') or match.group('amount_2') or 1))
     else:
         return "Invalid syntax."
 
+    gender = None
     if match.group('gender'):
         if match.group('gender').strip() in ["female","woman"]:
             gender = "female"
 
-        if match.group('gender').strip() in ["male","man"]:
+        elif match.group('gender').strip() in ["male","man"]:
             gender = "male"
-    else:
-        gender = None
+
+        else:
+            return "Invalid syntax."
 
     names = [npc.Character.generate_name(gender=gender) for _ in range(amount)]
     if amount > 1:
