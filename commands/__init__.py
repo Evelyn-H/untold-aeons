@@ -17,12 +17,21 @@ class Command:
     def __call__(self, message):
         return self.function(message)
 
+# the difference here is that it also takes all the discord metadata about the message
+# *and* that it's async so it can do fancy discord shenanigans
+class FancyCommand(Command):
+    async def __call__(self, message, meta_message):
+        return await self.function(message, meta_message)
+
 class Bot:
     def __init__(self):
         self.commands = []
 
-    def register_command(self, func, prefix, add_footer=True):
-        self.commands.append(Command(func, prefix, add_footer))
+    def register_command(self, func, prefix, add_footer=True, fancy=False):
+        if fancy:
+            self.commands.append(FancyCommand(func, prefix, add_footer))
+        else:
+            self.commands.append(Command(func, prefix, add_footer))
 
     # command decorator
     def command(self, prefix, add_footer=True):
@@ -44,7 +53,10 @@ class Bot:
                 print(f"Message received: {message.content}")
                 print(f"Running command <{command.prefix}>")
                 # run the command processor
-                return_message = command(arguments)
+                if isinstance(command, FancyCommand):
+                    return_message = await command(arguments, meta_message=message)
+                else:
+                    return_message = command(arguments)
 
                 # embed
                 if isinstance(return_message, dict):

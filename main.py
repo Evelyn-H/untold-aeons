@@ -8,6 +8,7 @@ client = discord.Client()
 
 bot = commands.Bot()
 
+# main commands
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
@@ -15,10 +16,72 @@ bot.register_command(commands.npc.generate_npc, ["!npc"], add_footer=False)
 bot.register_command(commands.npc.generate_name, ["!names", "!name"], add_footer=False)
 bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stats"], add_footer=False)
 
-
+# little help message for people who are used to the old bot ^^
 @bot.command(["/croll"])
 def new_bot_help(message):
     return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
+
+
+# TODO: For new channels
+#  - print help message in new channels
+#  - !new_channel <name> command to make a new channel and make the caller the owner
+#    - ask for confirmation? with reactions potentially
+#  - !invite @<user> command to invite people to the channel
+
+# new permissions required:
+#  - guild intents
+#  - manage roles
+
+enabled_channel_categories = list(map(lambda i: i.lower(), ["test", "channels for one-shots", "the weaver's den"]))
+
+# Channel shenanigans
+@client.event
+async def on_guild_channel_create(channel):
+    if not isinstance(channel, discord.TextChannel):
+        return
+    if not channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
+        return
+
+    await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
+
+async def invite(message, meta_message):
+    if not meta_message.channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
+        return "This command can't be used in this channel."
+
+    if len(meta_message.mentions) == 0:
+        return "You must mention (@Name) a person to invite."
+
+    # make sure the user has the right permissions
+    owner = meta_message.author
+    owner_permissions = meta_message.channel.permissions_for(owner)
+    if not owner_permissions.manage_channels:
+        return "You are not allowed to invite people to this channel."
+
+    # add the invite-ee to the channel
+    user = meta_message.mentions[0]
+    await meta_message.channel.set_permissions(user, 
+        read_messages=True,
+        send_messages=True
+    )
+
+    # remove the permissions from all other keepers and give them to the owner
+    # first give them to the owner:
+    await meta_message.channel.set_permissions(owner, 
+        manage_channels=True,
+        manage_permissions=True,
+        manage_messages=True,
+        read_messages=True,
+        send_messages=True
+    )
+    # find the Keeper role
+    keeper_role = list(filter(lambda role: role.name in ["Test", "Keeper of Arcane Lore"], meta_message.guild.roles))[0]
+    # and delete the permissions for them
+    await meta_message.channel.set_permissions(keeper_role, overwrite=None)
+
+    return f"Welcome to {meta_message.channel.mention}, {user.mention}!"
+
+bot.register_command(invite, ["!invite"], add_footer=False, fancy=True)
+
 
 
 @client.event
