@@ -22,6 +22,21 @@ def new_bot_help(message):
     return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
 
 
+#cinnamon roll!
+async def cinnamon(message, ctx):
+    images = list(filter(lambda f: f.startswith("cinnamon"), os.listdir("images")))
+    random_image = random.choice(images)
+    await ctx.channel.send(file=discord.File(f'images/{random_image}'))
+
+bot.register_command(cinnamon, ["!cinnamon"], add_footer=False, fancy=True)
+
+async def mention_handler(ctx):
+    print("I've been mentioned!")
+    if "cinnamon" in ctx.content.lower():
+        await(cinnamon(ctx.content, ctx))
+
+
+
 # TODO: For new channels
 #  - print help message in new channels
 #  - !new_channel <name> command to make a new channel and make the caller the owner
@@ -88,7 +103,12 @@ bot.register_command(invite, ["!invite"], add_footer=False, fancy=True)
 async def on_message(message):
     if message.author == client.user:
         return
+    
+    # check for mentions
+    if client.user.id in map(lambda m: m.id, message.mentions):
+        await mention_handler(message)
 
+    # handle commands
     await bot.on_message(message)
 
 

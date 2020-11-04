@@ -47,27 +47,39 @@ class Bot:
         return actual_decorator
 
     async def on_message(self, message):
+        search_list = []
         for command in self.commands:
-            if (arguments := self._parse_command(message, command.prefix)) is not None:
+            if isinstance(command.prefix, list):
+                search_list.extend([(prefix, command) for prefix in command.prefix])
+            else:
+                search_list.append((command.prefix, command))
+        search_list.sort(key=lambda x: len(x[0]), reverse=True)
+
+        for prefix, command in search_list:
+            if (arguments := self._parse_command(message, prefix)) is not None:
                 # debug log
                 print(f"Message received: {message.content}")
-                print(f"Running command <{command.prefix}>")
+                print(f"Running command <{prefix}>")
                 # run the command processor
                 if isinstance(command, FancyCommand):
                     return_message = await command(arguments, meta_message=message)
                 else:
                     return_message = command(arguments)
 
-                # embed
-                if isinstance(return_message, dict):
-                    embed = discord.Embed.from_dict(return_message)
-                    if command.add_footer:
-                        embed.set_footer(text=f"@{message.author.display_name}")
-                    await message.channel.send(embed=embed)
+                # only do something if we have a return value
+                if not return_message is None:
+                    # embed
+                    if isinstance(return_message, dict):
+                        embed = discord.Embed.from_dict(return_message)
+                        if command.add_footer:
+                            embed.set_footer(text=f"@{message.author.display_name}")
+                        await message.channel.send(embed=embed)
 
-                # just a regular string message
-                else:
-                    await message.channel.send(str(return_message))
+                    # just a regular string message
+                    else:
+                        await message.channel.send(str(return_message))
+                    # don't have to search any further
+                return
 
 
     @staticmethod
