@@ -8,23 +8,31 @@ Not written yet.
 #TODO: make this less janky
 original_rolls = []
 
+#TODO: add !reason functionality
+
 
 # Custom Dice roll
 def roll(message):
-    try:
-        #TODO: make this less janky too
-        global original_rolls
-        original_rolls = []
-        
-        ast = grammar.parse(message)
-        print(ast)
-        result = ast.eval()
-        print(result)
+    match = re.match(r"^\s*(?P<dice_expr>.*?)\s*(?:!\s*(?P<reason>.*))?$", message)
+    if match:
+        try:
+            #TODO: make this less janky too
+            global original_rolls
+            original_rolls = []
+            
+            ast = grammar.parse(match.group('dice_expr'))
+            print(ast)
+            result = ast.eval()
+            print(result)
 
-        return {'title': result, 'description': ' '.join(map(str, original_rolls))}
+            description = ' '.join(map(str, original_rolls))
+            if match.group('reason'):
+                description += f"\n**Reason**: {match.group('reason')}"
 
-    except SyntaxError as error:
-        return error
+            return {'title': str(result), 'description': description}
+
+        except SyntaxError as error:
+            return error
 
     # else:
     #     return {'title': "Dice Roll Usage:", 'description': help_message}
@@ -34,11 +42,13 @@ import pratt
 import dice
 # TOKENIZER
 
+# REMEMBER, DON'T ALLOW A `!` IN HERE!
+# (or it'll break the !reason feature, maybe...)
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
     ('dice',        r"\d*d\d+"),  # a "dice" expression, e.g. "3d6"
     ('number',      r"\d+\.\d+ | \d+"),  # either decimal or integer
-    ('operator',    r"[+\-*x/\^]"),
+    ('operator',    r"//|[+\-*x/\^]"),
     ('parens',      r"[()]"),
 ) 
 
@@ -72,6 +82,7 @@ grammar.define_prefix("-", rbp=100, eval=operator.neg)
 grammar.define_infix("*", lbp=30, eval=operator.mul)
 grammar.define_infix("x", lbp=30, eval=operator.mul)
 grammar.define_infix("/", lbp=30, eval=operator.truediv)
+grammar.define_infix("//", lbp=30, eval=operator.floordiv)
 
 grammar.define_infix("^", lbp=40, right_assoc=True, eval=operator.pow)
 
