@@ -92,5 +92,5 @@ class Bot:
                 if (value := Bot._parse_command(message, p)) is not None: # yay recursion!
                     return value
         else:
-            if message.content.startswith(prefix):
-                return message.content[len(prefix):].lstrip()
+            if message.content.startswith(prefix + ' '):
+                return message.content[len(prefix)+1:].lstrip()

@@ -11,9 +11,9 @@ bot = commands.Bot()
 # main commands
 bot.register_command(commands.roll.roll, ["!r"])
 # this is just to avoid it also responding to !roll 
-@bot.command(["!roll"])
-def placeholder_roll(message):
-    return None
+# @bot.command(["!roll"])
+# def placeholder_roll(message):
+    # return None
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
