@@ -7,6 +7,7 @@ from . import coc
 from . import ua
 from . import dark
 from . import npc
+from . import roll
 
 class Command:
     def __init__(self, function, prefix, add_footer):

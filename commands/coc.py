@@ -58,7 +58,6 @@ def roll(message):
 
 
     else:
-        #TODO: add mini-tutorial here
         # embed = discord.Embed(title="Dice Roll Usage:", description=coc_help_message)
         # await message.channel.send(embed=embed)
         return {'title': "Dice Roll Usage:", 'description': coc_help_message}

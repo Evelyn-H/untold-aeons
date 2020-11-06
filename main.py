@@ -9,6 +9,7 @@ client = discord.Client()
 bot = commands.Bot()
 
 # main commands
+bot.register_command(commands.roll.roll, ["!r"])
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
