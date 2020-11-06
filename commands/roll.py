@@ -36,6 +36,8 @@ def roll(message):
 
         except SyntaxError as error:
             return error
+        except dice.DiceError as error:
+            return error
 
     # else:
     #     return {'title': "Dice Roll Usage:", 'description': help_message}
@@ -53,7 +55,7 @@ TOKEN_PATTERNS = (
     ('fudge_dice',  r"\d*df"),
     ('decimal',     r"\d*\.\d+"),  # either decimal or integer
     ('integer',     r"\d+"),  # either decimal or integer
-    ('operator',    r"//|[+\-*x/\^]"),
+    ('operator',    r"//|[+\-*x×/\^]"),
     ('parens',      r"[()]"),
     ('times',       r"times"), # e.g. `6 times 3d6`
     ('comma',       r","), # e.g. `3d6, 2d6+6`
@@ -98,6 +100,7 @@ grammar.define_prefix("-", rbp=100, eval=operator.neg)
 
 grammar.define_infix("*", lbp=30, eval=operator.mul)
 grammar.define_infix("x", lbp=30, eval=operator.mul)
+grammar.define_infix("×", lbp=30, eval=operator.mul)
 grammar.define_infix("/", lbp=30, eval=operator.truediv)
 grammar.define_infix("//", lbp=30, eval=operator.floordiv)
 
@@ -152,10 +155,11 @@ class Comma(pratt.Symbol):
 class Times(pratt.Infix):
     def eval(self):
         n = self.left.eval()
-        if isinstance(n, int) or (isinstance(n, float) and n.is_integer):
-            return MultipleResults([self.right.eval() for _ in range(int(n))])
-        else:
+        if not (isinstance(n, int) or (isinstance(n, float) and n.is_integer)):
             raise SyntaxError("The `times` operator must have an integer as the left argument.")
+        if n > 20:
+            raise dice.DiceError("Please don't roll more than 20 dice at once")
+        return MultipleResults([self.right.eval() for _ in range(int(n))])
 
 
 
