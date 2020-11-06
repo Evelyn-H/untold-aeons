@@ -25,7 +25,10 @@ def roll(message):
             result = ast.eval()
             print(result)
 
-            description = ' '.join(map(str, original_rolls))
+            def format_dice_list(rolls):
+                return f"`[{', '.join(str(r) for r in rolls)}]`"
+
+            description = ' '.join(map(format_dice_list, original_rolls))
             if match.group('reason'):
                 description += f"\n**Reason**: {match.group('reason')}"
 
@@ -47,6 +50,7 @@ import dice
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
     ('dice',        r"\d*d\d+"),  # a "dice" expression, e.g. "3d6"
+    ('fudge_dice',        r"\d*df"),  # a "dice" expression, e.g. "3d6"
     ('number',      r"\d+\.\d+ | \d+"),  # either decimal or integer
     ('operator',    r"//|[+\-*x/\^]"),
     ('parens',      r"[()]"),
@@ -63,16 +67,25 @@ grammar.define_literal("<number>", eval=int)
 #     def __init__(self, d, n=1):
 #         self.d = d
 #         self.n = n
-#         self.original = core.d(d, n, total=False)
+#         self.original = dice.d(d, n, total=False)
 #         self.total = sum(self.original)
 
+@grammar.define_literal("<dice>")
 def roll_dice(expr):
     n, d = expr.split('d')
     roll = dice.d(int(d), int(n or 1), total=False)
     original_rolls.append(roll)
     return sum(roll)
 
-grammar.define_literal("<dice>", eval=roll_dice)
+@grammar.define_literal("<fudge_dice>")
+def roll_fudge_dice(expr):
+    n, _ = expr.split('d')
+    roll = dice.d(3, int(n or 1), total=False)
+    roll = list(map(lambda d: d-2, roll))
+    def format_fate_die(die):
+        return {1: '+', 0: ' ', -1: '-'}[die]
+    original_rolls.append(list(map(format_fate_die, roll)))
+    return sum(roll)
 
 grammar.define_infix("+", lbp=20, eval=operator.add)
 

@@ -122,11 +122,15 @@ class Parser:
             (Literal,),
             { 
                 'name': name,
-                'eval': (lambda self: eval(self.value))
+                'eval': (lambda self: eval(self.value)) if eval else None
             }
         )
         self.symbol_table[name] = symbol_class
-        return symbol_class
+        def wrapper(func):
+            setattr(self.symbol_table[name], 'eval', (lambda self: func(self.value)))
+            return self.symbol_table[name]
+
+        return wrapper
 
     def define_infix(self, name, lbp, *, right_assoc=False, eval=None):
         base_class = (self.symbol_table[name], Infix) if name in self.symbol_table else (Infix,)
@@ -140,7 +144,11 @@ class Parser:
             }
         )
         self.symbol_table[name] = symbol_class
-        return symbol_class
+        def wrapper(func):
+            setattr(self.symbol_table[name], 'infix_eval', func)
+            return self.symbol_table[name]
+
+        return wrapper
 
     def define_prefix(self, name, rbp, *, eval=None):
         base_class = (self.symbol_table[name], Prefix) if name in self.symbol_table else (Prefix,)
@@ -154,8 +162,11 @@ class Parser:
             }
         )
         self.symbol_table[name] = symbol_class
-        return symbol_class
+        def wrapper(func):
+            setattr(self.symbol_table[name], 'prefix_eval', func)
+            return self.symbol_table[name]
 
+        return wrapper
 
 
 class Symbol(object):
