@@ -50,10 +50,13 @@ import dice
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
     ('dice',        r"\d*d\d+"),  # a "dice" expression, e.g. "3d6"
-    ('fudge_dice',        r"\d*df"),  # a "dice" expression, e.g. "3d6"
-    ('number',      r"\d+\.\d+ | \d+"),  # either decimal or integer
+    ('fudge_dice',  r"\d*df"),
+    ('decimal',     r"\d*\.\d+"),  # either decimal or integer
+    ('integer',     r"\d+"),  # either decimal or integer
     ('operator',    r"//|[+\-*x/\^]"),
     ('parens',      r"[()]"),
+    ('times',       r"times"), # e.g. `6 times 3d6`
+    ('comma',       r","), # e.g. `3d6, 2d6+6`
 ) 
 
 # DEFINITION
@@ -61,7 +64,8 @@ TOKEN_PATTERNS = (
 import operator
 grammar = pratt.Parser(TOKEN_PATTERNS)
 
-grammar.define_literal("<number>", eval=int)
+grammar.define_literal("<integer>", eval=int)
+grammar.define_literal("<decimal>", eval=float)
 
 # class DiceRoll:
 #     def __init__(self, d, n=1):
@@ -102,12 +106,57 @@ grammar.define_infix("^", lbp=40, right_assoc=True, eval=operator.pow)
 # just defining the symbol without any functionality
 grammar.define_symbol(")")
 
-@grammar.define_custom("(", lbp=110)
+@grammar.define_custom("(")
 class LeftParens(pratt.Symbol):
     def prefix(self):
         expr = self.expression(0)
         self.parser.advance(")")
         return expr
+
+class MultipleResults:
+    def __init__(self, results=None):
+        self.results = list(results) if results else []
+
+    def append(self, result):
+        self.results.append(result)
+
+    def __str__(self):
+        def format_result(r):
+            return f"({str(r)})" if isinstance(r, MultipleResults) else str(r)
+            
+        return ", ".join(map(format_result, self.results))
+
+@grammar.define_custom(",", lbp=5)
+class Comma(pratt.Symbol):
+    def infix(self, left):
+        # self.left = left
+        # self.right = self.expression(0)
+
+        self.left = [left]
+        rbp = 5
+        self.left.append(self.expression(rbp))
+        print('value:', type(self.parser.symbol))
+        while self.parser.symbol.value == ",":
+            self.parser.advance(",")
+            self.left.append(self.expression(rbp))
+
+        return self
+
+    def eval(self):
+        return MultipleResults([l.eval() for l in self.left])
+
+    def __repr__(self):
+        return f"(multiple {' '.join(map(repr, self.left))})"
+
+@grammar.define_custom("times", lbp=10)
+class Times(pratt.Infix):
+    def eval(self):
+        n = self.left.eval()
+        if isinstance(n, int) or (isinstance(n, float) and n.is_integer):
+            return MultipleResults([self.right.eval() for _ in range(int(n))])
+        else:
+            raise SyntaxError("The `times` operator must have an integer as the left argument.")
+
 
 
 # @grammar.define_custom("<number>")
