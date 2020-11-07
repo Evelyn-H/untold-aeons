@@ -6,15 +6,22 @@ class Occupation:
         self.stat_weights = tuple([0 if w == ... else w for w in self.stat_weights])
 
     def appropriateness(self, c: "npc.Character"):
+        def cap(value, z):
+            if value > 0:
+                return min(z, value)
+            else:
+                return 0#max(z, value)
+
+        norm = sum(self.stat_weights)
         return sum([
-            c.z_score(c.STR) * self.stat_weights[0],
-            c.z_score(c.CON) * self.stat_weights[1],
-            c.z_score(c.DEX) * self.stat_weights[2],
-            c.z_score(c.SIZ) * self.stat_weights[3],
-            c.z_score(c.INT) * self.stat_weights[4],
-            c.z_score(c.POW) * self.stat_weights[5],
-            c.z_score(c.APP) * self.stat_weights[6],
-            c.z_score(c.EDU) * self.stat_weights[7],
+            cap(c.z_score(c.STR) * self.stat_weights[0], c.z_score(c.STR)),
+            cap(c.z_score(c.CON) * self.stat_weights[1], c.z_score(c.CON)),
+            cap(c.z_score(c.DEX) * self.stat_weights[2], c.z_score(c.DEX)),
+            cap(c.z_score(c.SIZ) * self.stat_weights[3], c.z_score(c.SIZ)),
+            cap(c.z_score(c.INT) * self.stat_weights[4], c.z_score(c.INT)),
+            cap(c.z_score(c.POW) * self.stat_weights[5], c.z_score(c.POW)),
+            cap(c.z_score(c.APP) * self.stat_weights[6], c.z_score(c.APP)),
+            cap(c.z_score(c.EDU) * self.stat_weights[7], c.z_score(c.EDU)),
         ])
         # maybe normalize based on the sum of stat_weights?
 
@@ -56,7 +63,7 @@ other = [
     Occupation("Butler",        (...,...,...,...,...,  1,  1,  2)),
     Occupation("Chauffeur",     (...,...,  2,...,  1,  1,..., -1)),
     Occupation("Clergy member", ( -1,..., -1,...,...,  3,...,  2)),
-    Occupation("Conman",        ( -1,..., -1,...,  1,  2,  3,...)),
+    Occupation("Con Artist",    ( -1,..., -1,...,  1,  2,  3,...)),
     Occupation("Artisan",       (...,...,  1,...,...,  1,...,...)),
     Occupation("Cult Leader",   ( -1,..., -1,...,  2,  3,  2, -1)),
     Occupation("Designer",      (..., -1,..., -1,...,  1,  1,  2)),

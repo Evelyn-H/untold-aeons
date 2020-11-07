@@ -136,7 +136,7 @@ def roll_dice(expr):
     modifiers = re.findall(r"\s* ((?:kl|kh|k|dl|dh|d)\d+)", matches[2], re.UNICODE | re.VERBOSE | re.IGNORECASE)
 
     roll = DiceRoll(d, n)
-    original_rolls.append(roll.original)
+    original_rolls.append(list(roll.original))  # the `list()` ensures that the list is copied and it's not a reference
     print(roll.original)
 
     # little helper function for removing items from a list
