@@ -23,21 +23,21 @@ def roll(message):
             ast = grammar.parse(match.group('dice_expr'))
             print(ast)
             result = ast.eval()
+            # if isinstance(result, DiceRoll):
+            #     result = result.total
             print(result)
 
-            def format_dice_list(rolls):
-                return f"`[{', '.join(str(r) for r in rolls)}]`"
-
-            description = ' '.join(map(format_dice_list, original_rolls))
-            if match.group('reason'):
-                description += f"\n**Reason**: {match.group('reason')}"
-
-            return {'title': str(result), 'description': description}
-
-        except SyntaxError as error:
+        except Exception as error:
             return error
-        except dice.DiceError as error:
-            return error
+
+        def format_dice_list(rolls):
+            return f"`[{', '.join(str(r) for r in rolls)}]`"
+
+        description = ' '.join(map(format_dice_list, original_rolls))
+        if match.group('reason'):
+            description += f"\n**Reason**: {match.group('reason')}"
+
+        return {'title': str(result), 'description': description}
 
     # else:
     #     return {'title': "Dice Roll Usage:", 'description': help_message}
@@ -51,17 +51,28 @@ import dice
 # (or it'll break the !reason feature, maybe...)
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
-    ('dice',        r"\d*d\d+"),  # a "dice" expression, e.g. "3d6"
+    ('dice',        r"\d*d\d+ (\s* (kl|kh|k|dl|dh|d)\d+)*"),  # a "dice" expression, e.g. "3d6"
     ('fudge_dice',  r"\d*df"),
+    # ('drop_keep',   r"(kl|kh|k|dl|dh|d)\d+"), # k == kh, d == dl
     ('decimal',     r"\d*\.\d+"),  # either decimal or integer
     ('integer',     r"\d+"),  # either decimal or integer
-    ('operator',    r"//|[+\-*x×/\^]"),
+    ('operator',    r"//|[+\-*x×/÷\^]"),
     ('parens',      r"[()]"),
     ('times',       r"times"), # e.g. `6 times 3d6`
     ('comma',       r","), # e.g. `3d6, 2d6+6`
-) 
+)
 
 # DEFINITION
+
+#TODO: from tooboots:
+# Definitely! The most important is keep highest x and keep lowest x
+# Also lots of games use, of dice pool, how many are above target # 
+# There are a few others that I see used too
+
+# Also the reverse of keep highest/lowest: drop highest/lowest x
+# Dicemaiden also has an unsort command. But most other dicebots keep the tally unsorted by default 
+# and require a special command to sort it. Imho keeping it unsorted by default is the better way to do it
+# There are a bunch more specialty commands but those are the basic ones I use the most  @Evelyn 
 
 import operator
 grammar = pratt.Parser(TOKEN_PATTERNS)
@@ -69,19 +80,89 @@ grammar = pratt.Parser(TOKEN_PATTERNS)
 grammar.define_literal("<integer>", eval=int)
 grammar.define_literal("<decimal>", eval=float)
 
-# class DiceRoll:
-#     def __init__(self, d, n=1):
-#         self.d = d
-#         self.n = n
-#         self.original = dice.d(d, n, total=False)
-#         self.total = sum(self.original)
+class DiceRoll:
+    def __init__(self, d, n=1):
+        self.d = d
+        self.n = n
+        self.original = dice.d(d, n, total=False)
+        # self.total = sum(self.original)
+    
+    @property
+    def total(self):
+        return sum(self.original)
+
+    # # add
+    # def __add__(self, right):
+    #     return self.total + right
+    # def __radd__(self, left):
+    #     return left + self.total
+    # # sub
+    # def __sub__(self, right):
+    #     return self.total - right
+    # def __rsub__(self, left):
+    #     return left - self.total
+    # # neg
+    # def __neg__(self):
+    #     return -self.total
+    # # mul
+    # def __mul__(self, right):
+    #     return self.total * right
+    # def __rmul__(self, left):
+    #     return left * self.total
+    # # truediv
+    # def __truediv__(self, right):
+    #     return self.total / right
+    # def __rtruediv__(self, left):
+    #     return left / self.total
+    # # floordiv
+    # def __floordiv__(self, right):
+    #     return self.total // right
+    # def __rfloordiv__(self, left):
+    #     return left // self.total
+    # # pow
+    # def __pow__(self, right):
+    #     return self.total ** right
+    # def __rpow__(self, left):
+    #     return left ** self.total
 
 @grammar.define_literal("<dice>")
 def roll_dice(expr):
-    n, d = expr.split('d')
-    roll = dice.d(int(d), int(n or 1), total=False)
-    original_rolls.append(roll)
-    return sum(roll)
+    # n, d = expr.split('d')
+
+    # I know... So much regex jank...
+    matches = re.findall(r"(\d*)d(\d+) ((?:\s* (?:kl|kh|k|dl|dh|d)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
+    n = int(matches[0] or 1)
+    d = int(matches[1])
+    modifiers = re.findall(r"\s* ((?:kl|kh|k|dl|dh|d)\d+)", matches[2], re.UNICODE | re.VERBOSE | re.IGNORECASE)
+
+    roll = DiceRoll(d, n)
+    original_rolls.append(roll.original)
+    print(roll.original)
+
+    # little helper function for removing items from a list
+    def remove_n(l, n, func): # func should be `min` or `max`
+        for _ in range(n):
+            if len(l) == 0:
+                break
+            m = func(l)
+            l.remove(m)
+
+    for mod in modifiers:
+        matches = re.findall(r"(.*?)(\d+)", mod)[0]
+        operation = matches[0]
+        op_n = int(matches[1])
+
+        if operation == 'd' or operation == 'dl':
+            remove_n(roll.original, op_n, min)
+        elif operation == 'dh':
+            remove_n(roll.original, op_n, max)
+        elif operation == 'k' or operation == 'kh':
+            remove_n(roll.original, len(roll.original) - op_n, min)
+        elif operation == 'kl':
+            remove_n(roll.original, len(roll.original) - op_n, max)
+
+    print(roll.original)
+    return roll.total
 
 @grammar.define_literal("<fudge_dice>")
 def roll_fudge_dice(expr):
@@ -93,6 +174,39 @@ def roll_fudge_dice(expr):
     original_rolls.append(list(map(format_fate_die, roll)))
     return sum(roll)
 
+# ('drop_keep',   r"kl|kh|k|dl|dh|d"), # k == kh, d == dl
+# @grammar.define_postfix("<drop_keep>", lbp=120)
+# def drop_keep(right):
+#     if not isinstance(right, DiceRoll):
+#         raise SyntaxError("Can only drop/keep dice after a dice expression.")
+#     return ...
+
+# @grammar.define_custom("<drop_keep>", lbp=120)
+# class DropKeep(pratt.Postfix):
+#     def infix(self, left):
+#         matches = re.findall(r"(.*?)(\d+)", self.value)[0]
+#         self.operation = matches[0]
+#         self.n = int(matches[1])
+#         self.right = left
+#         return self
+
+#     def eval(self):
+#         # little helper function for removing items from a list
+#         def remove_n(l, n, func): # func should be `min` or `max`
+#             for _ in range(n):
+#                 m = func(l)
+#                 l.remove(m)
+
+#         right = self.right.eval()
+#         if not isinstance(right, DiceRoll):
+#             raise SyntaxError("Can only drop/keep dice after a dice expression.")
+
+#         if self.operation == 'd':
+#             remove_n(right.original, self.n, min)
+#             return right
+
+
+
 grammar.define_infix("+", lbp=20, eval=operator.add)
 
 grammar.define_infix("-", lbp=20, eval=operator.sub)
@@ -102,6 +216,7 @@ grammar.define_infix("*", lbp=30, eval=operator.mul)
 grammar.define_infix("x", lbp=30, eval=operator.mul)
 grammar.define_infix("×", lbp=30, eval=operator.mul)
 grammar.define_infix("/", lbp=30, eval=operator.truediv)
+grammar.define_infix("÷", lbp=30, eval=operator.truediv)
 grammar.define_infix("//", lbp=30, eval=operator.floordiv)
 
 grammar.define_infix("^", lbp=40, right_assoc=True, eval=operator.pow)
@@ -209,6 +324,9 @@ if __name__ == "__main__":
         try:
             ast = grammar.parse(expr)
             print(ast)
-            print(ast.eval())
+            result = ast.eval()
+            # if isinstance(result, DiceRoll):
+            #     result = result.total
+            print(result)
         except SyntaxError as error:
             print(error)

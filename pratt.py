@@ -128,7 +128,7 @@ class Parser:
         self.symbol_table[name] = symbol_class
         def wrapper(func):
             setattr(self.symbol_table[name], 'eval', (lambda self: func(self.value)))
-            return self.symbol_table[name]
+            return func
 
         return wrapper
 
@@ -139,14 +139,15 @@ class Parser:
             base_class,
             {
                 'name': name, 'lbp': lbp, 'right_assoc': right_assoc,
-                'infix_eval': eval
+                # '': eval
                 # 'eval': (lambda self: eval(self.left.eval(), self.right.eval()))
             }
         )
+        symbol_class.infix_eval = eval
         self.symbol_table[name] = symbol_class
         def wrapper(func):
             setattr(self.symbol_table[name], 'infix_eval', func)
-            return self.symbol_table[name]
+            return func
 
         return wrapper
 
@@ -164,7 +165,25 @@ class Parser:
         self.symbol_table[name] = symbol_class
         def wrapper(func):
             setattr(self.symbol_table[name], 'prefix_eval', func)
-            return self.symbol_table[name]
+            return func
+
+        return wrapper
+
+    def define_postfix(self, name, lbp, *, eval=None):
+        base_class = (self.symbol_table[name], Postfix) if name in self.symbol_table else (Postfix,)
+        symbol_class = type(
+            "CustomPostfixSymbol",
+            base_class,
+            {
+                'name': name, 'lbp': lbp,
+                'postfix_eval': eval
+                # 'eval': (lambda self: eval(self.left.eval(), self.right.eval()))
+            }
+        )
+        self.symbol_table[name] = symbol_class
+        def wrapper(func):
+            setattr(self.symbol_table[name], 'postfix_eval', func)
+            return func
 
         return wrapper
 
@@ -187,11 +206,20 @@ class Symbol(object):
     def infix(self, left):
         raise SyntaxError(f"Symbol `{self.name}` not allowed in infix position.")
 
+
     def eval(self):
-        if hasattr(self, 'prefix_eval') and self.right is None:
-            return self.prefix_eval(self.left.eval())
+        def get_func(name):
+            if hasattr(getattr(self, name), '__func__'):
+                # the .__func__ fixes problems with functions getting bound
+                return getattr(self, name).__func__
+            return getattr(self, name)
+
+        if hasattr(self, 'prefix_eval') and self.left and self.right is None:
+            return get_func('prefix_eval')(self.left.eval()) 
+        elif hasattr(self, 'postfix_eval') and self.left is None and self.right:
+            return get_func('postfix_eval')(self.right.eval())
         elif hasattr(self, 'infix_eval'):
-            return self.infix_eval(self.left.eval(), self.right.eval())
+            return get_func('infix_eval')(self.left.eval(), self.right.eval())
         else:
             raise NotImplementedError(f"`eval` not implemented for `{self.name}`")
 
@@ -201,6 +229,8 @@ class Symbol(object):
             return f"({self.name} {repr(self.left)} {repr(self.right)})"
         elif self.left:
             return f"({self.name} {repr(self.left)})"
+        elif self.right:
+            return f"({self.value or self.name} {repr(self.right)})"
         else:
             return f"{self.value}"
 
@@ -234,4 +264,11 @@ class Infix(Symbol):
         self.left = left
         rbp = self.lbp - int(self.right_assoc)
         self.right = self.parser.expression(rbp)
+        return self
+
+# Postfix
+class Postfix(Symbol):
+    lbp = 0
+    def infix(self, left):
+        self.right = left
         return self
