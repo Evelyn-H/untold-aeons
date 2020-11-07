@@ -13,8 +13,13 @@ original_rolls = []
 
 # Custom Dice roll
 def roll(message):
-    match = re.match(r"^\s*(?P<dice_expr>.*?)\s*(?:!\s*(?P<reason>.*))?$", message)
+    match = re.match(r"^\s*(?P<dice_expr>[^~!]+) \s* (?P<modifiers>(~[^!]*\s*)*)? \s* (?:!\s*(?P<reason>.*))?$", message, re.UNICODE | re.VERBOSE | re.IGNORECASE)
     if match:
+        modifiers = []
+        if match.group('modifiers'):
+            modifiers = list(filter(None, map(str.lower, map(str.strip, match.group('modifiers').split('~')))))
+            print(modifiers)
+
         try:
             #TODO: make this less janky too
             global original_rolls
@@ -32,6 +37,9 @@ def roll(message):
 
         def format_dice_list(rolls):
             return f"`[{', '.join(str(r) for r in rolls)}]`"
+
+        if "sort" in modifiers or "sorted" in modifiers:
+            original_rolls = [sorted(l, reverse=True) for l in original_rolls]
 
         description = ' '.join(map(format_dice_list, original_rolls))
         if match.group('reason'):
