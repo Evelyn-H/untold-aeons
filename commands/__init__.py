@@ -56,6 +56,7 @@ class Bot:
                 search_list.append((command.prefix, command))
         search_list.sort(key=lambda x: len(x[0]), reverse=True)
 
+        error = None
         for prefix, command in search_list:
             if (arguments := self._parse_command(message, prefix)) is not None:
                 # debug log
@@ -67,8 +68,9 @@ class Bot:
                         return_message = await command(arguments, meta_message=message)
                     else:
                         return_message = command(arguments)
-                except:
+                except Exception as e:
                     return_message = "Something went wrong, go yell at <@!139111840364888064>"
+                    error = e
 
                 # only do something if we have a return value
                 if not return_message is None:
@@ -83,6 +85,10 @@ class Bot:
                     else:
                         await message.channel.send(str(return_message))
                     # don't have to search any further
+
+                if error:
+                    raise error
+                
                 return
 
 
