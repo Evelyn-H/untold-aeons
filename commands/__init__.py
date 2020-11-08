@@ -62,10 +62,13 @@ class Bot:
                 print(f"Message received: {message.content}")
                 print(f"Running command <{prefix}>")
                 # run the command processor
-                if isinstance(command, FancyCommand):
-                    return_message = await command(arguments, meta_message=message)
-                else:
-                    return_message = command(arguments)
+                try:
+                    if isinstance(command, FancyCommand):
+                        return_message = await command(arguments, meta_message=message)
+                    else:
+                        return_message = command(arguments)
+                except:
+                    return_message = "Something went wrong, go yell at <@!139111840364888064>"
 
                 # only do something if we have a return value
                 if not return_message is None:
