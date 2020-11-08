@@ -90,9 +90,10 @@ async def invite(message, meta_message):
         send_messages=True
     )
     # find the Keeper role
-    keeper_role = list(filter(lambda role: role.name in ["Test", "Keeper of Arcane Lore"], meta_message.guild.roles))[0]
+    keeper_role = list(filter(lambda role: role.name in ["Keeper of Arcane Lore"], meta_message.guild.roles))[0]
     # and delete the permissions for them
-    await meta_message.channel.set_permissions(keeper_role, overwrite=None)
+    if keeper_role:
+        await meta_message.channel.set_permissions(keeper_role, overwrite=None)
 
     return f"Welcome to {meta_message.channel.mention}, {user.mention}!"
 
