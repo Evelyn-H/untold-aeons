@@ -32,16 +32,15 @@ def roll(message):
             #     result = result.total
             print(result)
 
-        except Exception as error:
+        except (dice.DiceError, SyntaxError, NotImplementedError) as error:
             return error
 
-        def format_dice_list(rolls):
-            return f"`[{', '.join(str(r) for r in rolls)}]`"
-
         if "sort" in modifiers or "sorted" in modifiers:
-            original_rolls = [sorted(l, reverse=True) for l in original_rolls]
+            for r in original_rolls:
+                r.original.sort(reverse=True)
+                r.rolls.sort(reverse=True)
 
-        description = ' '.join(map(format_dice_list, original_rolls))
+        description = ' '.join(map(lambda s: f"`{s}`", map(str, original_rolls)))
         if match.group('reason'):
             description += f"\n**Reason**: {match.group('reason')}"
 
@@ -59,8 +58,8 @@ import dice
 # (or it'll break the !reason feature, maybe...)
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
-    ('dice',        r"\d*d\d+ (\s* (kl|kh|k|dl|dh|d)\d+)*"),  # a "dice" expression, e.g. "3d6"
-    ('fudge_dice',  r"\d*df"),
+    ('dice',        r"\d*d(\d+|f) (\s* (kl|kh|k|dl|dh|d|t|f)\d+)*"),  # a "dice" expression, e.g. "3d6"
+    # ('fudge_dice',  r"\d*df"),
     # ('drop_keep',   r"(kl|kh|k|dl|dh|d)\d+"), # k == kh, d == dl
     ('decimal',     r"\d*\.\d+"),  # either decimal or integer
     ('integer',     r"\d+"),  # either decimal or integer
@@ -93,11 +92,15 @@ class DiceRoll:
         self.d = d
         self.n = n
         self.original = dice.d(d, n, total=False)
+        self.rolls = list(self.original)  # the `list()` ensures that the list is copied and it's not a reference
         # self.total = sum(self.original)
     
     @property
     def total(self):
-        return sum(self.original)
+        return sum(self.rolls)
+
+    def __str__(self):
+        return str(self.original)
 
     # # add
     # def __add__(self, right):
@@ -133,18 +136,64 @@ class DiceRoll:
     # def __rpow__(self, left):
     #     return left ** self.total
 
+class SuccessFailureRoll(DiceRoll):
+    @classmethod
+    def transform_DiceRoll(cls, roll):
+        roll.__class__ = cls  # I know, super hacky but it works :p
+        roll.target = None
+        roll.failure = None
+        return roll
+
+    @property
+    # bad name, but can't think of anything better
+    def total_counts(self):
+        def count(d):
+            total = 0
+            if self.target:
+                total += int(d >= self.target)
+            if self.failure:
+                total -= int(d <= self.failure)
+            return total
+
+        return list(map(count, self.rolls))
+
+    @property
+    def total(self):
+        return sum(self.total_counts)
+
+    def __str__(self):
+        def format_die(d):
+            if d > 0:
+                return '+'
+            elif d < 0:
+                return '-'
+            else:
+                return ' '
+
+        return f"[{', '.join(format_die(d) for d in self.total_counts)}]"
+        # return str([str(r) for r in map(format_die, self.total_counts)])
+
 @grammar.define_literal("<dice>")
 def roll_dice(expr):
     # n, d = expr.split('d')
 
     # I know... So much regex jank...
-    matches = re.findall(r"(\d*)d(\d+) ((?:\s* (?:kl|kh|k|dl|dh|d)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
+    matches = re.findall(r"(\d*)d(\d+|f) ((?:\s* (?:kl|kh|k|dl|dh|d|t|f)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
     n = int(matches[0] or 1)
-    d = int(matches[1])
-    modifiers = re.findall(r"\s* ((?:kl|kh|k|dl|dh|d)\d+)", matches[2], re.UNICODE | re.VERBOSE | re.IGNORECASE)
+    d = matches[1]
+    modifiers = re.findall(r"\s* ((?:kl|kh|k|dl|dh|d|t|f)\d+)", matches[2], re.UNICODE | re.VERBOSE | re.IGNORECASE)
 
-    roll = DiceRoll(d, n)
-    original_rolls.append(list(roll.original))  # the `list()` ensures that the list is copied and it's not a reference
+    # fudge dice
+    if d == 'f':
+        # gonna do a little transformation here
+        d = 3  # roll d3
+        # and add the `t3f1` modifiers to the start of the modifiers
+        modifiers.insert(0, "t3")
+        modifiers.insert(0, "f1")
+
+
+    roll = DiceRoll(int(d), n)
+    original_rolls.append(roll)
     print(roll.original)
 
     # little helper function for removing items from a list
@@ -160,27 +209,40 @@ def roll_dice(expr):
         operation = matches[0]
         op_n = int(matches[1])
 
+        #  drop / keep operators
         if operation == 'd' or operation == 'dl':
-            remove_n(roll.original, op_n, min)
+            # TODO: yknow, these should really be DiceRoll methods...
+            remove_n(roll.rolls, op_n, min)
         elif operation == 'dh':
-            remove_n(roll.original, op_n, max)
+            remove_n(roll.rolls, op_n, max)
         elif operation == 'k' or operation == 'kh':
-            remove_n(roll.original, len(roll.original) - op_n, min)
+            remove_n(roll.rolls, len(roll.rolls) - op_n, min)
         elif operation == 'kl':
-            remove_n(roll.original, len(roll.original) - op_n, max)
+            remove_n(roll.rolls, len(roll.rolls) - op_n, max)
 
-    print(roll.original)
+        # target / failure operators
+        elif operation == 't':
+            if not isinstance(roll, SuccessFailureRoll):
+                roll = SuccessFailureRoll.transform_DiceRoll(roll)
+            roll.target = op_n
+
+        elif operation == 'f':
+            if not isinstance(roll, SuccessFailureRoll):
+                roll = SuccessFailureRoll.transform_DiceRoll(roll)
+            roll.failure = op_n
+
+    print(roll.rolls)
     return roll.total
 
-@grammar.define_literal("<fudge_dice>")
-def roll_fudge_dice(expr):
-    n, _ = expr.split('d')
-    roll = dice.d(3, int(n or 1), total=False)
-    roll = list(map(lambda d: d-2, roll))
-    def format_fate_die(die):
-        return {1: '+', 0: ' ', -1: '-'}[die]
-    original_rolls.append(list(map(format_fate_die, roll)))
-    return sum(roll)
+# @grammar.define_literal("<fudge_dice>")
+# def roll_fudge_dice(expr):
+#     n, _ = expr.split('d')
+#     roll = dice.d(3, int(n or 1), total=False)
+#     roll = list(map(lambda d: d-2, roll))
+#     def format_fate_die(die):
+#         return {1: '+', 0: ' ', -1: '-'}[die]
+#     original_rolls.append(list(map(format_fate_die, roll)))
+#     return sum(roll)
 
 # ('drop_keep',   r"kl|kh|k|dl|dh|d"), # k == kh, d == dl
 # @grammar.define_postfix("<drop_keep>", lbp=120)
