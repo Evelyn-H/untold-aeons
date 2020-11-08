@@ -144,33 +144,35 @@ class SuccessFailureRoll(DiceRoll):
         roll.failure = None
         return roll
 
-    @property
-    # bad name, but can't think of anything better
-    def total_counts(self):
-        def count(d):
-            total = 0
-            if self.target:
-                total += int(d >= self.target)
-            if self.failure:
-                total -= int(d <= self.failure)
-            return total
+    def count(self, d):
+        total = 0
+        if self.target:
+            total += int(d >= self.target)
+        if self.failure:
+            total -= int(d <= self.failure)
+        return total
 
-        return list(map(count, self.rolls))
+    # @property
+    # # bad name, but can't think of anything better
+    # def total_counts(self):
+    #     return list(map(self.count, self.rolls))
 
     @property
     def total(self):
-        return sum(self.total_counts)
+        return sum(map(self.count, self.rolls))
 
     def __str__(self):
         def format_die(d):
-            if d > 0:
-                return '+'
-            elif d < 0:
-                return '-'
+            fate = getattr(self, 'fate', False)
+            c = self.count(d)
+            if c > 0:
+                return '+' if fate else f"{d} (+)"
+            elif c < 0:
+                return '-' if fate else f"{d} (-)"
             else:
-                return ' '
+                return ' ' if fate else f"{d}"
 
-        return f"[{', '.join(format_die(d) for d in self.total_counts)}]"
+        return f"[{', '.join(format_die(d) for d in self.original)}]"
         # return str([str(r) for r in map(format_die, self.total_counts)])
 
 @grammar.define_literal("<dice>")
@@ -190,6 +192,7 @@ def roll_dice(expr):
         # and add the `t3f1` modifiers to the start of the modifiers
         modifiers.insert(0, "t3")
         modifiers.insert(0, "f1")
+        modifiers.insert(0, "fate0")  # just a marker to mark the roll as coming from a fate die
 
 
     roll = DiceRoll(int(d), n)
@@ -230,6 +233,9 @@ def roll_dice(expr):
             if not isinstance(roll, SuccessFailureRoll):
                 roll = SuccessFailureRoll.transform_DiceRoll(roll)
             roll.failure = op_n
+
+        elif operation == 'fate':
+            roll.fate = True
 
     print(roll.rolls)
     return roll.total
