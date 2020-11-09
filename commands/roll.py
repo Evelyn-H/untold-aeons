@@ -58,7 +58,7 @@ import dice
 # (or it'll break the !reason feature, maybe...)
 TOKEN_PATTERNS = (
     ('whitespace',  r"\s+"),
-    ('dice',        r"\d*d(\d+|f) (\s* (kl|kh|k|dl|dh|d|t|f)\d+)*"),  # a "dice" expression, e.g. "3d6"
+    ('dice',        r"\d*d(\d+|f|%) (\s* (kl|kh|k|dl|dh|d|t|f)\d+)*"),  # a "dice" expression, e.g. "3d6"
     # ('fudge_dice',  r"\d*df"),
     # ('drop_keep',   r"(kl|kh|k|dl|dh|d)\d+"), # k == kh, d == dl
     ('decimal',     r"\d*\.\d+"),  # either decimal or integer
@@ -180,7 +180,7 @@ def roll_dice(expr):
     # n, d = expr.split('d')
 
     # I know... So much regex jank...
-    matches = re.findall(r"(\d*)d(\d+|f) ((?:\s* (?:kl|kh|k|dl|dh|d|t|f)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
+    matches = re.findall(r"(\d*)d(\d+|f|%) ((?:\s* (?:kl|kh|k|dl|dh|d|t|f)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
     n = int(matches[0] or 1)
     d = matches[1]
     modifiers = re.findall(r"\s* ((?:kl|kh|k|dl|dh|d|t|f)\d+)", matches[2], re.UNICODE | re.VERBOSE | re.IGNORECASE)
@@ -193,6 +193,10 @@ def roll_dice(expr):
         modifiers.insert(0, "t3")
         modifiers.insert(0, "f1")
         modifiers.insert(0, "fate0")  # just a marker to mark the roll as coming from a fate die
+
+    # percentile dice
+    elif d == '%':
+        d = 100
 
 
     roll = DiceRoll(int(d), n)
