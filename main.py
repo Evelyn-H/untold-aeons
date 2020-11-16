@@ -23,6 +23,16 @@ def new_bot_help(message):
     return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
 
 
+# quick command to link the amazing 100 CoC tips guide
+@bot.command(["!100"], add_footer=False)
+def new_bot_help(message):
+    return {
+        "title": "/r/callofcthulhu - 100 tips for any non-functioning Call of Cthulhu Keeper",
+        "description": "",
+        "url": "https://www.reddit.com/r/callofcthulhu/comments/8gb0fc/100_tips_for_any_nonfunctioning_call_of_cthulhu/"
+    }
+
+
 #cinnamon roll!
 async def cinnamon(message, ctx):
     images = list(filter(lambda f: f.startswith("cinnamon"), os.listdir("images")))
