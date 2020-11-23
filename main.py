@@ -1,10 +1,16 @@
 import os
 import random
 import asyncio
+from fuzzywuzzy import fuzz
 import discord
 import commands
 
-client = discord.Client()
+
+intents = discord.Intents.default()
+intents.members = True
+intents.reactions = True
+
+client = discord.Client(intents=intents)
 
 bot = commands.Bot()
 
@@ -70,12 +76,9 @@ async def on_guild_channel_create(channel):
 
     await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
 
-async def invite(message, meta_message):
+async def invite(message, meta_message, try_matching=True):
     if not meta_message.channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
         return "This command can't be used in this channel."
-
-    if len(meta_message.mentions) == 0:
-        return "You must mention (@Name) a person to invite."
 
     # make sure the user has the right permissions
     owner = meta_message.author
@@ -83,12 +86,36 @@ async def invite(message, meta_message):
     if not owner_permissions.manage_channels:
         return "You are not allowed to invite people to this channel."
 
-    # add the invite-ee to the channel
-    # user = meta_message.mentions[0]
-    # await meta_message.channel.set_permissions(user, 
-    #     read_messages=True,
-    #     send_messages=True
-    # )
+    if len(meta_message.mentions) == 0:
+        if try_matching:
+            # first try to manually "autocomplete" the user
+            all_users = meta_message.guild.members
+            # all_usernames = [(u.name, u) for u in all_users]
+            # all_nicknames = [(u.nick, u) for u in all_users if u.nick]
+            # print(all_usernames)
+            # print(all_nicknames)
+
+            all_usernames = [(u.name, u) for u in all_users] + [(u.nick, u) for u in all_users if u.nick]
+
+            names = list(filter(None, map(str.strip, message.split('@'))))
+
+            ratios = [(fuzz.partial_ratio(nick, names[0]), user) for nick, user in all_usernames]
+            ratios.sort(key=lambda u: u[0], reverse=True)
+            print(list(map(lambda u: (u[0], u[1].display_name), ratios[:5])))
+
+            # editing the message *should* avoid unnecessary user pings
+            # await meta_message.channel.send(f"Did you mean: {ratios[0][1].mention}?")
+            message = await meta_message.channel.send(f"Did you mean this user?")
+            await asyncio.sleep(0.1) # not sure if this is entirely necessary, but just to be safe ^^
+            await message.edit(content=f"Did you mean: {ratios[0][1].mention}?")
+            await message.add_reaction('👍')
+            await message.add_reaction('🚫')
+            return
+
+        else:
+            # if that fails... well... too bad :p
+            return "You must mention (@Name) a person to invite."
+
     for user in meta_message.mentions:
         await meta_message.channel.set_permissions(user, 
             read_messages=True,
@@ -115,6 +142,21 @@ async def invite(message, meta_message):
     return f"Welcome to {meta_message.channel.mention}, {users_str}!"
 
 bot.register_command(invite, ["!invite"], add_footer=False, fancy=True)
+
+@client.event
+async def on_reaction_add(reaction, user):
+    if user == client.user:
+        return
+    
+    print("reaction added:", repr(reaction))
+    if reaction.me:
+        if reaction.emoji == '👍':
+            return_message = await invite(f"{user.mention}", reaction.message, try_matching=False)
+            await reaction.message.channel.send(str(return_message))
+            await reaction.message.delete()
+
+        if reaction.emoji == '🚫':
+            await reaction.message.delete()
 
 
 
