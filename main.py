@@ -76,12 +76,12 @@ async def on_guild_channel_create(channel):
 
     await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
 
-async def invite(message, meta_message, try_matching=True):
+async def invite(message, meta_message, try_matching=True, owner_override=None):
     if not meta_message.channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
         return "This command can't be used in this channel."
 
     # make sure the user has the right permissions
-    owner = meta_message.author
+    owner = owner_override or meta_message.author
     owner_permissions = meta_message.channel.permissions_for(owner)
     if not owner_permissions.manage_channels:
         return "You are not allowed to invite people to this channel."
@@ -151,7 +151,11 @@ async def on_reaction_add(reaction, user):
     print("reaction added:", repr(reaction))
     if reaction.me:
         if reaction.emoji == '👍':
-            return_message = await invite(f"{user.mention}", reaction.message, try_matching=False)
+            users = await reaction.users().flatten()
+            users = [u for u in users if u != client.user]
+            owner = users[0]
+            
+            return_message = await invite(f"{user.mention}", reaction.message, try_matching=False, owner_override=owner)
             await reaction.message.channel.send(str(return_message))
             await reaction.message.delete()
 
