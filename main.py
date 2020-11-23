@@ -84,11 +84,16 @@ async def invite(message, meta_message):
         return "You are not allowed to invite people to this channel."
 
     # add the invite-ee to the channel
-    user = meta_message.mentions[0]
-    await meta_message.channel.set_permissions(user, 
-        read_messages=True,
-        send_messages=True
-    )
+    # user = meta_message.mentions[0]
+    # await meta_message.channel.set_permissions(user, 
+    #     read_messages=True,
+    #     send_messages=True
+    # )
+    for user in meta_message.mentions:
+        await meta_message.channel.set_permissions(user, 
+            read_messages=True,
+            send_messages=True
+        )
 
     # remove the permissions from all other keepers and give them to the owner
     # first give them to the owner:
@@ -105,7 +110,9 @@ async def invite(message, meta_message):
     if keeper_role:
         await meta_message.channel.set_permissions(keeper_role, overwrite=None)
 
-    return f"Welcome to {meta_message.channel.mention}, {user.mention}!"
+    users = list(map(lambda u: u.mention, meta_message.mentions))
+    users_str = ", ".join(users[:-1]) + " and " + users[-1] if len(users) > 1 else users[0]
+    return f"Welcome to {meta_message.channel.mention}, {users_str}!"
 
 bot.register_command(invite, ["!invite"], add_footer=False, fancy=True)
 
