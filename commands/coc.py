@@ -2,10 +2,21 @@ import re
 import dice
 from .colors import *
 
+
+coc_mini_help_message = """\
+Use `!coc <skill> <modifiers>` for skill rolls (modifiers are optional)
+E.g.: `!coc 70`, `!coc 20+`, `!coc 30-`
+
+(Use `!coc help` for more details)
+"""
+
 coc_help_message = """\
 `!coc <modifiers>`: a d100 roll with optional bonus / penalty dice
 `!coc <skill> <modifiers>`: a skill check with the given skill value and optional bonus / penalty dice
 (alternatively, you can also use `!croll`, and `!cocroll` instead of `!coc`)
+
+Additionally, you can specify a reason for the roll as follows:
+`!coc <skill> <modifiers> !<reason>`
 
 Modifiers (i.e. bonus and penalty dice) can be added as follows:
   - bonus dice: `bonus`, `b`, or `+`
@@ -19,6 +30,7 @@ Examples:
     `!coc 50+`: skill check with a bonus die
     `!coc 20 penalty`: skill check with a penalty die
     `!coc 50 ++-`: skill check with 2 bonus die and a penalty die, resulting in a single bonus die after cancelling out
+    `!coc 70 !listen`: skill check with a skill of 70, with the reason "listen" 
 """
     
 # CoC Dice roll
@@ -49,18 +61,18 @@ def roll(message):
                 # await message.channel.send(f"{tens} + {units} = {total}")
                 embed = build_coc_roll_embed(total, tens, units, reason=reason)
 
-            # embed.set_footer(text=f"@{message.author.display_name}")
-            # await message.channel.send(embed=embed)
             return embed
         
         except dice.DiceError as error:
             return error.message
 
 
-    else:
-        # embed = discord.Embed(title="Dice Roll Usage:", description=coc_help_message)
-        # await message.channel.send(embed=embed)
+    elif "help" in message:
         return {'title': "Dice Roll Usage:", 'description': coc_help_message}
+
+    else:
+        return {'title': "", 'description': coc_mini_help_message}
+
 
 def build_coc_roll_embed(total, tens, units, success_level=None, reason=None):
    
