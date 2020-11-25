@@ -56,7 +56,6 @@ def roll(message):
             print(result)
 
         except (dice.DiceError, SyntaxError, NotImplementedError) as error:
-
             if "help" in message:
                 return {'title': "Dice Roll Usage:", 'description': help_message}
             else:
@@ -73,8 +72,9 @@ def roll(message):
 
         return {'title': str(result), 'description': description}
 
-    # else:
-    #     return {'title': "Dice Roll Usage:", 'description': help_message}
+    else:
+        return {'title': "Dice Roll Usage:", 'description': help_message}
+
 
 
 import pratt
