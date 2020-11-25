@@ -207,6 +207,7 @@ def roll_dice(expr):
     # n, d = expr.split('d')
 
     # I know... So much regex jank...
+    expr = expr.lower()
     matches = re.findall(r"(\d*)d(\d+|f|%) ((?:\s* (?:kl|kh|k|dl|dh|d|t|f)\d+)*)", expr, re.UNICODE | re.VERBOSE | re.IGNORECASE)[0]
     n = int(matches[0] or 1)
     d = matches[1]
