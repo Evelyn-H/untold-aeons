@@ -15,7 +15,7 @@ client = discord.Client(intents=intents)
 bot = commands.Bot()
 
 # main commands
-bot.register_command(commands.roll.roll, ["!r"])
+bot.register_command(commands.roll.roll, ["!roll", "!r"])
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
@@ -149,16 +149,22 @@ async def on_reaction_add(reaction, user):
         return
     
     print("reaction added:", repr(reaction))
+    # this only runs if the *original* reaction was from the bot itself
     if reaction.me:
         if reaction.emoji == '👍':
             users = await reaction.users().flatten()
             users = [u for u in users if u != client.user]
             owner = users[0]
-            
+
             return_message = await invite(f"{user.mention}", reaction.message, try_matching=False, owner_override=owner)
             await reaction.message.channel.send(str(return_message))
             await reaction.message.delete()
 
+        if reaction.emoji == '🚫':
+            await reaction.message.delete()
+
+    # if the message being reacted to is from the bot
+    if reaction.message.author == client.user:
         if reaction.emoji == '🚫':
             await reaction.message.delete()
 

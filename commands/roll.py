@@ -2,7 +2,30 @@ import re
 import dice
 
 help_message = """\
-Not written yet.
+`!roll <dice>`: roll arbitrary dice expressions
+`!roll <dice> !<reason>`: optionally give a reason for the dice roll
+
+Features / Syntax:
+  - `xdy`: roll x dice with y sides each
+  - `+` `-` `*` `/`: simple arithmetic operators
+  - `n times y`: roll the y expression n times
+
+Dice modifiers:
+These must always follow a dice expression (`xdy`) and modify the roll in some way. (`#` represents a number)
+  - `t#`: target number for a success
+  - `f#`: target number for a failure
+  - `d#`: drop lowest dice
+  - `dh#`: drop highest dice
+  - `k#`: keep highest dice
+  - `kl#`: keep lowest dice
+
+Examples:
+    `!roll 3d6`: simple 3d6 roll
+    `!roll 6 times 3d6`: roll 6 sets of 3d6
+    `!roll (2d6+6)*5`: CoC characteristic roll
+    `!roll 4d6k3`: roll 4d6, keep highest 3
+    `!roll 4d3 t3 f1`: 4d3 with successes on 3s, failures on 1s (Fudge dice!)
+    `!roll 4df`: shorthand for fudge dice, same as above
 """
 
 #TODO: make this less janky
@@ -33,7 +56,11 @@ def roll(message):
             print(result)
 
         except (dice.DiceError, SyntaxError, NotImplementedError) as error:
-            return error
+
+            if "help" in message:
+                return {'title': "Dice Roll Usage:", 'description': help_message}
+            else:
+                return error
 
         if "sort" in modifiers or "sorted" in modifiers:
             for r in original_rolls:
