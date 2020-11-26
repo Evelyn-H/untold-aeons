@@ -71,13 +71,13 @@ enabled_channel_categories = list(map(lambda i: i.lower(), ["test", "channels fo
 async def on_guild_channel_create(channel):
     if not isinstance(channel, discord.TextChannel):
         return
-    if not channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
+    if not channel.category.name.lower() in enabled_channel_categories:
         return
 
     await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
 
 async def invite(message, meta_message, try_matching=True, owner_override=None):
-    if not meta_message.channel.category.name.lower() in enabled_channel_categories: #TODO: update this!
+    if not meta_message.channel.category.name.lower() in enabled_channel_categories:
         return "This command can't be used in this channel."
 
     # make sure the user has the right permissions
@@ -148,9 +148,9 @@ async def on_reaction_add(reaction, user):
     if user == client.user:
         return
     
-    print("reaction added:", repr(reaction))
     # this only runs if the *original* reaction was from the bot itself
     if reaction.me:
+        print("reaction added:", repr(reaction))
         if reaction.emoji == '👍':
             users = await reaction.users().flatten()
             users = [u for u in users if u != client.user]
@@ -165,6 +165,7 @@ async def on_reaction_add(reaction, user):
 
     # if the message being reacted to is from the bot
     if reaction.message.author == client.user:
+        print("reacted to me:", repr(reaction))
         if reaction.emoji == '🚫':
             await reaction.message.delete()
 

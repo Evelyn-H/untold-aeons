@@ -13,7 +13,7 @@ def generate_npc(message):
     #     c = npc.Character()
     #     d[c.occupation.name] = d.get(c.occupation.name, 0) + 1
 
-    # print(d)
+    # print(list(sorted(d.items(), key=lambda i: i[1])))
 
 
 def generate_name(message):

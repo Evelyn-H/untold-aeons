@@ -75,7 +75,6 @@ def roll(message):
                     1: ("*Juuuust* Barely", C_FAILURE),
                 }[highest(white_d6 + green_d6)]
 
-            #TODO: only bold the highest value for each color
             def format_dice_list(l):
                 if len(l) == 0:
                     return ""

@@ -31,9 +31,6 @@ Examples:
 #TODO: make this less janky
 original_rolls = []
 
-#TODO: add !reason functionality
-
-
 # Custom Dice roll
 def roll(message):
     match = re.match(r"^\s*(?P<dice_expr>[^~!]+) \s* (?P<modifiers>(~[^!]*\s*)*)? \s* (?:!\s*(?P<reason>.*))?$", message, re.UNICODE | re.VERBOSE | re.IGNORECASE)
@@ -97,16 +94,6 @@ TOKEN_PATTERNS = (
 )
 
 # DEFINITION
-
-#TODO: from tooboots:
-# Definitely! The most important is keep highest x and keep lowest x
-# Also lots of games use, of dice pool, how many are above target # 
-# There are a few others that I see used too
-
-# Also the reverse of keep highest/lowest: drop highest/lowest x
-# Dicemaiden also has an unsort command. But most other dicebots keep the tally unsorted by default 
-# and require a special command to sort it. Imho keeping it unsorted by default is the better way to do it
-# There are a bunch more specialty commands but those are the basic ones I use the most  @Evelyn 
 
 import operator
 grammar = pratt.Parser(TOKEN_PATTERNS)
