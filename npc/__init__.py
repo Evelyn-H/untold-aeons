@@ -165,7 +165,7 @@ class Character:
                      + f"DEX: {self.DEX},  APP: {self.APP},  DB: {self.damage_bonus}\n" \
                      + f"SIZ: {self.SIZ},  EDU: {self.EDU},  Build: {self.build}\n"
         description += "\n"
-        description += f"Hit points: {self.hp},  Luck: {self.luck},  Sanity: {self.sanity}\n"
+        description += f"HP: {self.hp},  Luck: {self.luck},  Sanity: {self.sanity}\n"
         description += "```"
 
         return {'title': title, 'description': description}
