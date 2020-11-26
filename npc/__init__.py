@@ -84,23 +84,34 @@ class Character:
         return first_name + " " + pick(names.family)
 
     def generate_occupation(self):
+        # possibilities = [(
+        #     occupation, 
+        #     max(0, occupation.appropriateness(self)) + 1) 
+        # for occupation in occupations.all]
+        # # print(possibilities)
+
+        # possibilities.sort(key=lambda x: x[1], reverse=True)
+        # # only choose from top 10
+        # possibilities = possibilities[0:10]
+        # # for p in possibilities:
+        # #     print(p[0].name, "\t", p[1])
+
+
+        # m = max(possibilities, key=lambda x: x[1])
+        # best = [o[0] for o in possibilities if o[1] == m[1]]
+        # print(m, best)
+        # return pick(possibilities)  # weighted random selection
+
         possibilities = [(
             occupation, 
             max(0, occupation.appropriateness(self)) + 1) 
         for occupation in occupations.all]
         # print(possibilities)
 
-        possibilities.sort(key=lambda x: x[1], reverse=True)
-        # only choose from top 10
-        possibilities = possibilities[0:10]
-        # for p in possibilities:
-        #     print(p[0].name, "\t", p[1])
+        selection = [pick(possibilities) for _ in range(20)]
+        return random.choice(selection)
 
-
-        m = max(possibilities, key=lambda x: x[1])
-        best = [o[0] for o in possibilities if o[1] == m[1]]
-        # print(m, best)
-        return pick(possibilities)
+        # return random.choice(occupations.all)
 
     def generate_description(self):
         # traits = list(filter(lambda trait: trait != "", [
@@ -136,7 +147,7 @@ class Character:
             traits_str = ", ".join(character_traits[:-1]) + " and " + character_traits[-1]
 
         description =  f"{self.name} is {'an' if traits_str.startswith(('a', 'e', 'i', 'o', 'u')) else 'a'} {traits_str} {self.occupation.name}.\n"
-        description += f"{'She' if self.gender == 'female' else 'He'} is <>."
+        # description += f"{'She' if self.gender == 'female' else 'He'} is <>."
 
         return description
 
@@ -148,7 +159,8 @@ class Character:
 
         # stat block
         description += "```"
-        description += f"STR: {self.STR},  INT: {self.INT},  Credit: {self.credit_rating}\n" \
+        # description += f"STR: {self.STR},  INT: {self.INT},  Credit: {self.credit_rating}\n" \
+        description += f"STR: {self.STR},  INT: {self.INT}\n" \
                      + f"CON: {self.CON},  POW: {self.POW},  Move: {self.move_rate}\n" \
                      + f"DEX: {self.DEX},  APP: {self.APP},  DB: {self.damage_bonus}\n" \
                      + f"SIZ: {self.SIZ},  EDU: {self.EDU},  Build: {self.build}\n"
