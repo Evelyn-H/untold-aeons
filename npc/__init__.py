@@ -146,7 +146,7 @@ class Character:
         else:
             traits_str = ", ".join(character_traits[:-1]) + " and " + character_traits[-1]
 
-        description =  f"{self.name} is {'an' if traits_str.startswith(('a', 'e', 'i', 'o', 'u')) else 'a'} {traits_str} {self.occupation.name}.\n"
+        description =  f"{self.name} is {'an' if traits_str.startswith(('a', 'e', 'i', 'o', 'u')) else 'a'} {traits_str} {self.occupation.name}."
         # description += f"{'She' if self.gender == 'female' else 'He'} is <>."
 
         return description
