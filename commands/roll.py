@@ -32,7 +32,7 @@ Examples:
 original_rolls = []
 
 # Custom Dice roll
-def roll(message):
+async def roll(message, ctx):
     match = re.match(r"^\s*(?P<dice_expr>[^~!]+) \s* (?P<modifiers>(~[^!]*\s*)*)? \s* (?:!\s*(?P<reason>.*))?$", message, re.UNICODE | re.VERBOSE | re.IGNORECASE)
     if match:
         modifiers = []
@@ -47,6 +47,18 @@ def roll(message):
             
             ast = grammar.parse(match.group('dice_expr'))
             print(ast)
+            # print("ast:", repr(ast.name), repr(ast.value), ast.left, ast.right)
+            
+            # Error checking the user instead of the code :p
+            try:
+                if ast.name == "<dice>" and ("d100" in ast.value or "1d100" in ast.value):
+                    await ctx.channel.send("If you want to do CoC skill checks, try using `!coc <skill>` instead!")
+                if ast.name == "<integer>":
+                    print("it's d100")
+                    await ctx.channel.send(f"If you want to roll a dice, try `!roll d{ast.value}` instead of `!roll {ast.value}`.")
+            except:
+                pass
+
             result = ast.eval()
             # if isinstance(result, DiceRoll):
             #     result = result.total
