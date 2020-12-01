@@ -48,7 +48,7 @@ async def roll(message, ctx):
             ast = grammar.parse(match.group('dice_expr'))
             print(ast)
             # print("ast:", repr(ast.name), repr(ast.value), ast.left, ast.right)
-            
+
             # Error checking the user instead of the code :p
             try:
                 if ast.name == "<dice>" and ("d100" in ast.value or "1d100" in ast.value):
@@ -58,6 +58,9 @@ async def roll(message, ctx):
                     await ctx.channel.send(f"If you want to roll a dice, try `!roll d{ast.value}` instead of `!roll {ast.value}`.")
             except:
                 pass
+
+            # check if it's a straight dice roll without *any* modifiers of any kind
+            pure_diceroll = ast.name == "<dice>" and re.match(r"^\s*(\d*)d(\d+)\s*$", ast.value, re.UNICODE | re.VERBOSE | re.IGNORECASE)
 
             result = ast.eval()
             # if isinstance(result, DiceRoll):
@@ -75,7 +78,9 @@ async def roll(message, ctx):
                 r.original.sort(reverse=True)
                 r.rolls.sort(reverse=True)
 
-        description = ' '.join(map(lambda s: f"`{s}`", map(str, original_rolls)))
+        description = ""
+        if not pure_diceroll:
+            description += ' '.join(map(lambda s: f"`{s}`", map(str, original_rolls)))
         if match.group('reason'):
             description += f"\n**Reason**: {match.group('reason')}"
 
