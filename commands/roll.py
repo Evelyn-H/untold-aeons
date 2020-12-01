@@ -60,7 +60,7 @@ async def roll(message, ctx):
                 pass
 
             # check if it's a straight dice roll without *any* modifiers of any kind
-            pure_diceroll = ast.name == "<dice>" and re.match(r"^\s*(\d*)d(\d+)\s*$", ast.value, re.UNICODE | re.VERBOSE | re.IGNORECASE)
+            pure_diceroll = ast.name == "<dice>" and re.match(r"^\s*(1?)d(\d+)\s*$", ast.value, re.UNICODE | re.VERBOSE | re.IGNORECASE)
 
             result = ast.eval()
             # if isinstance(result, DiceRoll):
