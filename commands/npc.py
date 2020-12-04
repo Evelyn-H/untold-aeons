@@ -54,15 +54,17 @@ def roll_stats(message):
 
     print(total / 5)
 
-    if expected_total - std_dev * 0.5 < total / 5 < expected_total + std_dev * 0.5:
+    t = 0.35  # std_dev threshold 
+    averageness = None
+    if expected_total - std_dev * t < total / 5 < expected_total + std_dev * t:
         averageness = None
-    elif expected_total - std_dev * 1.0 < total / 5 < expected_total - std_dev * 0.5:
+    elif expected_total - std_dev * (2*t) < total / 5 < expected_total - std_dev * t:
         averageness = "below average"
-    elif total / 5 < expected_total - std_dev * 1.0:
+    elif total / 5 < expected_total - std_dev * (2*t):
         averageness = "*well* below average"
-    elif expected_total + std_dev * 0.5 < total / 5 < expected_total + std_dev * 1.0:
+    elif expected_total + std_dev * t < total / 5 < expected_total + std_dev * (2*t):
         averageness = "above average"
-    elif expected_total + std_dev * 1.0 < total / 5:
+    elif expected_total + std_dev * (2*t) < total / 5:
         averageness = "*well* above average"
 
     title = "Random PC stats"
