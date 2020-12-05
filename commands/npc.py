@@ -27,10 +27,10 @@ def generate_name(message):
 
     gender = None
     if match.group('gender'):
-        if match.group('gender').strip() in ["female", "woman", "women"]:
+        if match.group('gender').strip() in ["f", "female", "woman", "women"]:
             gender = "female"
 
-        elif match.group('gender').strip() in ["male", "man", "men"]:
+        elif match.group('gender').strip() in ["m", "male", "man", "men"]:
             gender = "male"
 
         else:

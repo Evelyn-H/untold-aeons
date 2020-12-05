@@ -28,6 +28,18 @@ bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stat
 def new_bot_help(message):
     return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
 
+# lists all available commands
+@bot.command(["!commands", "!plzhalp", "!plzhelp", "!plshalp", "!plshelp", "!pleasehelp"], add_footer=False)
+def list_commands(message):
+    return {'title': "Available Commands:", 'description': """\
+`!coc <skill> <modifiers (optional)>`: Call of Cthulhu skill check roller
+`!roll <dice>`: generic dice roller (e.g. damage rolls and such)
+`!name`: generate a random name
+`!names <amount> <gender (optional)>`: generate multiple names, optionally only male / female names
+`!npc`: simple NPC generator
+`!stats` or `!rollstats`: roll stats for CoC character creation
+"""}
+
 
 # quick command to link the amazing 100 CoC tips guide
 @bot.command(["!100"], add_footer=False)
