@@ -10,10 +10,11 @@ from . import npc
 from . import roll
 
 class Command:
-    def __init__(self, function, prefix, add_footer):
+    def __init__(self, function, prefix, add_footer, require_space):
         self.function = function
         self.prefix = prefix
         self.add_footer = add_footer
+        self.require_space = require_space
 
     def __call__(self, message):
         return self.function(message)
@@ -28,11 +29,11 @@ class Bot:
     def __init__(self):
         self.commands = []
 
-    def register_command(self, func, prefix, add_footer=True, fancy=False):
+    def register_command(self, func, prefix, add_footer=True, fancy=False, require_space=True):
         if fancy:
-            self.commands.append(FancyCommand(func, prefix, add_footer))
+            self.commands.append(FancyCommand(func, prefix, add_footer, require_space))
         else:
-            self.commands.append(Command(func, prefix, add_footer))
+            self.commands.append(Command(func, prefix, add_footer, require_space))
 
     # command decorator
     def command(self, prefix, add_footer=True):
@@ -58,7 +59,7 @@ class Bot:
 
         error = None
         for prefix, command in search_list:
-            if (arguments := self._parse_command(message, prefix)) is not None:
+            if (arguments := self._parse_command(message, prefix, command.require_space)) is not None:
                 # debug log
                 print(f"Message received: {message.content}")
                 print(f"Running command <{prefix}>")
@@ -93,7 +94,7 @@ class Bot:
 
 
     @staticmethod
-    def _parse_command(message, prefix):
+    def _parse_command(message, prefix, require_space=True):
         # allow for "synonymous" commands
         # print(message.content, prefix)
         if isinstance(prefix, list):
@@ -103,3 +104,5 @@ class Bot:
         else:
             if message.content.startswith(prefix + ' ') or message.content.rstrip() == prefix:
                 return message.content[len(prefix)+1:].lstrip()
+            if not require_space and message.content.startswith(prefix):
+                return message.content[len(prefix):].lstrip()

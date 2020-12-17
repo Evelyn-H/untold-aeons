@@ -28,6 +28,14 @@ Examples:
     `!roll 4df`: shorthand for fudge dice, same as above
 """
 
+async def roll_simple(message, ctx):
+    try:
+        d = int(message)
+    except:
+        return None
+        
+    return await roll("d" + message, ctx)
+
 #TODO: make this less janky
 original_rolls = []
 
