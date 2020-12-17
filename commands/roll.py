@@ -28,19 +28,34 @@ Examples:
     `!roll 4df`: shorthand for fudge dice, same as above
 """
 
-async def roll_simple(message, ctx):
+class RollError(Exception):
+    def __init__(self, message, base_exception=None):
+        super().__init__(message)
+        self.message = message
+        self.base_exception = base_exception
+
+
+async def roll(message, ctx):
     try:
-        d = int(message)
-    except:
+        return await roll_innards(message, ctx)
+    except RollError as error:
+        return error.message
+
+async def roll_simple(message, ctx):
+    # try:
+    #     d = int(message)
+    # except:
+    #     return None
+    try:
+        return await roll_innards('d' + message, ctx)
+    except RollError as error:
         return None
-        
-    return await roll("d" + message, ctx)
 
 #TODO: make this less janky
 original_rolls = []
 
 # Custom Dice roll
-async def roll(message, ctx):
+async def roll_innards(message, ctx):
     match = re.match(r"^\s*(?P<dice_expr>[^~!]+) \s* (?P<modifiers>(~[^!]*\s*)*)? \s* (?:!\s*(?P<reason>.*))?$", message, re.UNICODE | re.VERBOSE | re.IGNORECASE)
     if match:
         modifiers = []
@@ -77,9 +92,9 @@ async def roll(message, ctx):
 
         except (dice.DiceError, SyntaxError, NotImplementedError) as error:
             if "help" in message:
-                return {'title': "Dice Roll Usage:", 'description': help_message}
+                raise RollError({'title': "Dice Roll Usage:", 'description': help_message}, error)
             else:
-                return error
+                raise RollError(str(error), error)
 
         if "sort" in modifiers or "sorted" in modifiers:
             for r in original_rolls:
@@ -95,7 +110,7 @@ async def roll(message, ctx):
         return {'title': str(result), 'description': description}
 
     else:
-        return {'title': "Dice Roll Usage:", 'description': help_message}
+        raise RollError({'title': "Dice Roll Usage:", 'description': help_message})
 
 
 
