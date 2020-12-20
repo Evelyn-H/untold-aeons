@@ -57,21 +57,16 @@ class Bot:
                 search_list.append((command.prefix, command))
         search_list.sort(key=lambda x: len(x[0]), reverse=True)
 
+        log_channel = discord.utils.get(message.guild.channels, name='ua-log')
+        command_recognised = False
+
         error = None
         for prefix, command in search_list:
             if (arguments := self._parse_command(message, prefix, command.require_space)) is not None:
                 # debug log
                 print(f"Message received: {message.content}")
                 print(f"Running command <{prefix}>")
-
-                # log channel stuff
-                log_channel = discord.utils.get(message.guild.channels, name='ua-log')
-                if log_channel:
-                    await log_channel.send(
-                        f"`{message.content}` by {message.author.mention} in {message.channel.mention}",
-                        allowed_mentions=discord.AllowedMentions.none(),
-                        # reference=message   # discord.py >=1.6 only
-                    )
+                command_recognised = True
 
                 # run the command processor
                 try:
@@ -98,9 +93,23 @@ class Bot:
                     # don't have to search any further
 
                 if error:
+                    recognised = " " if command_recognised else " (not recognised)"
+                    await log_channel.send(
+                        f"Command: `{message.content}`{recognised} by {message.author.mention} in {message.channel.mention}",
+                        allowed_mentions=discord.AllowedMentions.none(),
+                        # reference=message   # discord.py >=1.6 only
+                    )
+                    await log_channel.send(f"**Internal Error**", allowed_mentions=discord.AllowedMentions.none())
                     raise error
                 
-                return
+                break
+        if log_channel and message.content.startswith('!'):
+            recognised = " " if command_recognised else " (not recognised)"
+            await log_channel.send(
+                f"Command: `{message.content}`{recognised} by {message.author.mention} in {message.channel.mention}",
+                allowed_mentions=discord.AllowedMentions.none(),
+                # reference=message   # discord.py >=1.6 only
+            )
 
 
     @staticmethod
