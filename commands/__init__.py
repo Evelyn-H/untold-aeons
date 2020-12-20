@@ -63,6 +63,16 @@ class Bot:
                 # debug log
                 print(f"Message received: {message.content}")
                 print(f"Running command <{prefix}>")
+
+                # log channel stuff
+                log_channel = discord.utils.get(message.guild.channels, name='ua-log')
+                if log_channel:
+                    await log_channel.send(
+                        f"`{message.content}` by {message.author.mention} in {message.channel.mention}",
+                        allowed_mentions=discord.AllowedMentions.none(),
+                        # reference=message   # discord.py >=1.6 only
+                    )
+
                 # run the command processor
                 try:
                     if isinstance(command, FancyCommand):
