@@ -78,7 +78,8 @@ async def roll_innards(message, ctx):
                     await ctx.channel.send("If you want to do CoC skill checks, try using `!coc <skill>` instead!")
                 if ast.name == "<integer>":
                     print("it's d100")
-                    await ctx.channel.send(f"If you want to roll a dice, try `!roll d{ast.value}` instead of `!roll {ast.value}`.")
+                    # await ctx.channel.send(f"If you want to roll a dice, try `!roll d{ast.value}` instead of `!roll {ast.value}`.")
+                    return f"If you want to roll a dice, try `!roll d{ast.value}` instead of `!roll {ast.value}`."
             except:
                 pass
 
