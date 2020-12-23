@@ -90,6 +90,9 @@ async def on_guild_channel_create(channel):
     await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
 
 async def invite(message, meta_message, try_matching=True, owner_override=None):
+    print(meta_message.guild.name, meta_message.guild.id)
+
+
     if not meta_message.channel.category.name.lower() in enabled_channel_categories:
         return "This command can't be used in this channel."
 
