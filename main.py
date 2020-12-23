@@ -27,13 +27,13 @@ bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stat
 # little help message for people who are used to the old bot ^^
 @bot.command(["/croll"])
 def new_bot_help(message):
-    return "This no longer works, try: `!coc <skill>` instead!\n For more details, try: `!coc help`."
+    return "This no longer works, try: `!coc <skill value>` instead!\n For more details, try: `!coc help`."
 
 # lists all available commands
 @bot.command(["!commands", "!plzhalp", "!plzhelp", "!plshalp", "!plshelp", "!pleasehelp"], add_footer=False)
 def list_commands(message):
     return {'title': "Available Commands:", 'description': """\
-`!coc <skill> <modifiers (optional)>`: Call of Cthulhu skill check roller
+`!coc <skill value> <modifiers (optional)>`: Call of Cthulhu skill check roller
 `!roll <dice>`: generic dice roller (e.g. damage rolls and such)
 `!name`: generate a random name
 `!names <amount> <gender (optional)>`: generate multiple names, optionally only male / female names
@@ -157,7 +157,7 @@ async def invite(message, meta_message, try_matching=True, owner_override=None):
     users_str = ", ".join(users[:-1]) + " and " + users[-1] if len(users) > 1 else users[0]
     return f"Welcome to {meta_message.channel.mention}, {users_str}!"
 
-bot.register_command(invite, ["!invite"], add_footer=False, fancy=True)
+bot.register_command(invite, ["!invite"], add_footer=False, fancy=True, locked=True)
 
 @client.event
 async def on_reaction_add(reaction, user):

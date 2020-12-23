@@ -10,11 +10,12 @@ from . import npc
 from . import roll
 
 class Command:
-    def __init__(self, function, prefix, add_footer, require_space):
+    def __init__(self, function, prefix, add_footer, require_space, locked):
         self.function = function
         self.prefix = prefix
         self.add_footer = add_footer
         self.require_space = require_space
+        self.locked = locked
 
     def __call__(self, message):
         return self.function(message)
@@ -29,11 +30,11 @@ class Bot:
     def __init__(self):
         self.commands = []
 
-    def register_command(self, func, prefix, add_footer=True, fancy=False, require_space=True):
+    def register_command(self, func, prefix, add_footer=True, fancy=False, require_space=True, locked=False):
         if fancy:
-            self.commands.append(FancyCommand(func, prefix, add_footer, require_space))
+            self.commands.append(FancyCommand(func, prefix, add_footer, require_space, locked))
         else:
-            self.commands.append(Command(func, prefix, add_footer, require_space))
+            self.commands.append(Command(func, prefix, add_footer, require_space, locked))
 
     # command decorator
     def command(self, prefix, add_footer=True):
@@ -67,6 +68,12 @@ class Bot:
                 print(f"Message received: {message.content}")
                 print(f"Running command <{prefix}>")
                 command_recognised = True
+
+                # check if this command is allowed on this server
+                if command.locked:
+                    whitelist = [('Call of Cthulhu', 696102985717121024), ('Test Post Please Ignore', 644672598533210122)]
+                    if (message.guild.name, message.guild.id) not in whitelist:
+                        break
 
                 # run the command processor
                 try:

@@ -4,7 +4,7 @@ from .colors import *
 
 
 coc_mini_help_message = """\
-Use `!coc <skill> <modifiers>` for skill rolls (modifiers are optional)
+Use `!coc <skill value> <modifiers>` for skill rolls (modifiers are optional)
 E.g.: `!coc 70`, `!coc 20+`, `!coc 30-`
 
 (Use `!coc help` for more details)
@@ -12,11 +12,11 @@ E.g.: `!coc 70`, `!coc 20+`, `!coc 30-`
 
 coc_help_message = """\
 `!coc <modifiers>`: a d100 roll with optional bonus / penalty dice
-`!coc <skill> <modifiers>`: a skill check with the given skill value and optional bonus / penalty dice
+`!coc <skill value> <modifiers>`: a skill check with the given skill value and optional bonus / penalty dice
 (alternatively, you can also use `!croll`, and `!cocroll` instead of `!coc`)
 
 Additionally, you can specify a reason for the roll as follows:
-`!coc <skill> <modifiers> !<reason>`
+`!coc <skill value> <modifiers> !<reason>`
 
 Modifiers (i.e. bonus and penalty dice) can be added as follows:
   - bonus dice: `bonus`, `b`, or `+`
