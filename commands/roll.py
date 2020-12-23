@@ -131,7 +131,7 @@ TOKEN_PATTERNS = (
     ('operator',    r"//|[+\-*x×/÷\^]"),
     ('parens',      r"[()]"),
     ('times',       r"times"), # e.g. `6 times 3d6`
-    ('comma',       r","), # e.g. `3d6, 2d6+6`
+    ('comma',       r"[,;]"), # e.g. `3d6, 2d6+6`
 )
 
 # DEFINITION
@@ -392,6 +392,25 @@ class Comma(pratt.Symbol):
         print('value:', type(self.parser.symbol))
         while self.parser.symbol.value == ",":
             self.parser.advance(",")
+            self.left.append(self.expression(rbp))
+
+        return self
+
+    def eval(self):
+        return MultipleResults([l.eval() for l in self.left])
+
+    def __repr__(self):
+        return f"(multiple {' '.join(map(repr, self.left))})"
+
+@grammar.define_custom(";", lbp=5)
+class Comma(pratt.Symbol):
+    def infix(self, left):
+        self.left = [left]
+        rbp = 5
+        self.left.append(self.expression(rbp))
+        print('value:', type(self.parser.symbol))
+        while self.parser.symbol.value == ";":
+            self.parser.advance(";")
             self.left.append(self.expression(rbp))
 
         return self
