@@ -4,6 +4,7 @@ import discord
 
 from . import colors
 from . import coc
+from . import dg
 from . import ua
 from . import dark
 from . import npc

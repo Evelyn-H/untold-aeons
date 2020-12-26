@@ -43,7 +43,7 @@ def d100(modifiers=0):
 def roll(skill, modifiers=0):
     if skill < 1:
         raise DiceError("Skill is too low, I know you can do better than that!")
-    if skill > 500:
+    if skill > 200:
         raise DiceError("Skill is too high. No one is *that* good, not even you.")
     if abs(modifiers) > 20:
         raise DiceError("If you need that many bonus / penalty dice I think something has gone horribly wrong (or right)...")

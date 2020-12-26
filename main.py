@@ -20,6 +20,7 @@ bot.register_command(commands.roll.roll_simple, ["!d"], fancy=True, require_spac
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.ua.roll, ["!uaroll", "!ua"])
 bot.register_command(commands.dark.roll, ["!dark", "!cdark"])
+bot.register_command(commands.dg.roll, ["!dgroll", "!dg"])
 bot.register_command(commands.npc.generate_npc, ["!npc"], add_footer=False)
 bot.register_command(commands.npc.generate_name, ["!names", "!name"], add_footer=False)
 bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stats"], add_footer=False)
