@@ -34,11 +34,11 @@ Examples:
     
 # DG Dice roll
 def roll(message):
-    match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:[+-]\d+\s*)*)(?:!\s*(?P<reason>.*))?$", message)
+    match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:[+-]\s*\d+\s*)*)(?:!\s*(?P<reason>.*))?$", message)
     if match:
-        modifiers = re.findall(r"([+-]\d+)", match.group('modifiers'))
+        modifiers = re.findall(r"([+-]\s*\d+)", match.group('modifiers'))
         print(match.group('skill'), "---", modifiers)
-        total_modifiers = sum([int(mod) for mod in modifiers])
+        total_modifiers = sum([int("".join(mod.split())) for mod in modifiers])
 
         reason = match.group('reason')
 
