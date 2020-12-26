@@ -11,7 +11,7 @@ E.g.: `!dg 70`, `!dg 45+20`, `!dg 30-20`
 """
 
 dg_help_message = """\
-`!dg: a plain d100 roll
+`!dg`: a plain d100 roll
 `!dg <skill value>`: a skill check with the given skill value
 `!dg <skill value> <modifiers>`: a skill check with the given skill value and modifiers
 
