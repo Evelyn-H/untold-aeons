@@ -115,6 +115,8 @@ async def invite(message, meta_message, try_matching=True, owner_override=None):
             all_usernames = [(u.name, u) for u in all_users] + [(u.nick, u) for u in all_users if u.nick]
 
             names = list(filter(None, map(str.strip, message.split('@'))))
+            if len(names) == 0:
+                return "You must mention (@Name) a person to invite."
 
             ratios = [(fuzz.partial_ratio(nick, names[0]), user) for nick, user in all_usernames]
             ratios.sort(key=lambda u: u[0], reverse=True)
