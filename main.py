@@ -88,7 +88,12 @@ async def on_guild_channel_create(channel):
     if not channel.category.name.lower() in enabled_channel_categories:
         return
 
-    await channel.send("Hello!\nYou can invite people to this channel by typing: `!invite @Name`")
+    await channel.send(
+"""Hello!
+You can invite people to this channel by typing: `!invite @Name`
+Due to a Discord limitation names usually won't get autocompleted if you try to @mention them.
+Just do your best to write out most of the name anyway and it'll still work!
+""")
 
 async def invite(message, meta_message, try_matching=True, owner_override=None):
     print(meta_message.guild.name, meta_message.guild.id)
