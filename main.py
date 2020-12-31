@@ -141,6 +141,10 @@ async def invite(message, meta_message, try_matching=True, owner_override=None):
             return "You must mention (@Name) a person to invite."
 
     for user in meta_message.mentions:
+        # don't allow inviting goats
+        if "Goat" in [r.name for r in user.roles]:
+            return f"Couldn't invite {user.mention}, they need to pick a role first."
+
         await meta_message.channel.set_permissions(user, 
             read_messages=True,
             send_messages=True
