@@ -45,7 +45,7 @@ def list_commands(message):
 
 # quick command to link the amazing 100 CoC tips guide
 @bot.command(["!100"], add_footer=False)
-def new_bot_help(message):
+def tips_100(message):
     return {
         "title": "/r/callofcthulhu - 100 tips for any non-functioning Call of Cthulhu Keeper",
         "description": "",

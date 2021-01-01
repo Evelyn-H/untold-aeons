@@ -35,7 +35,7 @@ Examples:
     
 # CoC Dice roll
 def roll(message):
-    match = re.match(r"^\s*(?P<skill>\d*)\s*(?P<modifiers>(?:t|bonus|b|\+|penalty|p|-|\s+)*)(?:!\s*(?P<reason>.*))?$", message)
+    match = re.match(r"^\s*(?P<skill>(?:\d*\s*,?\s*)*)\s*(?P<modifiers>(?:t|bonus|b|\+|penalty|p|-|\s+)*)(?:!\s*(?P<reason>.*))?$", message)
     if match:
         print(match.group('skill'), "---", match.group('modifiers'))
         # this is kinda janky, but if you just count 'b', 'p', '+', and '-'
@@ -50,7 +50,9 @@ def roll(message):
             # see if a skill value was given or not
             if match.group('skill'):
                 # roll and also check what type of success it was
-                skill = int(match.group('skill'))
+                # print(match.group('skill'), match.group('skill').split(","))
+                skill_list = [int(s) for s in match.group('skill').split(",")]
+                skill = min(skill_list)  #int(match.group('skill'))
                 total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
                 # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
                 embed = build_coc_roll_embed(total, tens, units, success_level, reason=reason)
@@ -100,6 +102,8 @@ def build_coc_roll_embed(total, tens, units, success_level=None, reason=None):
         color = 0x202225
 
     description = f"**{total - units}**{' '+str(tens) if len(tens) > 1 else ''} + **{units}** = **{total}**"
+    # description += f"\n\n10: **Failure**"
+    # description += f"\n45: **Success**\n"
     if reason:
         description += f"\n**Reason**: {reason}"
     
