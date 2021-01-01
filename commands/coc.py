@@ -51,11 +51,23 @@ def roll(message):
             if match.group('skill'):
                 # roll and also check what type of success it was
                 # print(match.group('skill'), match.group('skill').split(","))
-                skill_list = [int(s) for s in match.group('skill').split(",")]
-                skill = min(skill_list)  #int(match.group('skill'))
-                total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
-                # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
-                embed = build_coc_roll_embed(total, tens, units, success_level, reason=reason)
+                skill_list = [int(s) for s in match.group('skill').split(",") if s]
+                if len(skill_list) == 1:
+                    skill = min(skill_list)  #int(match.group('skill'))
+                    total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
+                    # await message.channel.send(f"{success_level.__class__.__repr__(success_level)},  {tens} + {units} = {total}")
+                    embed = build_coc_roll_embed(total, tens, units, success_level, reason=reason)
+                else:
+                    dice_roll = dice.coc.d100(total_modifiers)
+                    # skill_list.sort()
+                    results = [(skill, dice.coc.roll(skill, total_modifiers, force_value=dice_roll)) for skill in skill_list]
+                    print(results)
+                    total, tens, units, success_level = sorted(results, key=lambda d: d[0])[0][1]
+                    print(sorted(results, key=lambda d: d[0]))
+                    # other_results = results[1:]
+                    other_results = results[:]
+                    embed = build_coc_roll_embed(total, tens, units, success_level, reason=reason, secondary_rolls=other_results)
+
 
             else:
                 # don't do success level checks and just output a dice roll number
@@ -76,34 +88,54 @@ def roll(message):
         return {'title': "", 'description': coc_mini_help_message}
 
 
-def build_coc_roll_embed(total, tens, units, success_level=None, reason=None):
+def success_level_str(success_level):
+    if success_level == dice.coc.SuccessLevel.CRITICAL_SUCCESS:
+        return ("Critical Success!", C_CRITICAL_SUCCESS)
+    elif success_level == dice.coc.SuccessLevel.EXTREME_SUCCESS:
+        return ("Extreme Success!", C_SUCCESS_ADV)
+    elif success_level == dice.coc.SuccessLevel.HARD_SUCCESS:
+        return ("Hard Success!", C_HARD_SUCCESS)
+    elif success_level == dice.coc.SuccessLevel.REGULAR_SUCCESS:
+        return ("Success", C_SUCCESS)
+    elif success_level == dice.coc.SuccessLevel.FAILURE:
+        return ("Failure", C_FAILURE)
+    elif success_level == dice.coc.SuccessLevel.FUMBLE:
+        return ("Fumble!", C_FAILURE_DISADV)
+
+def build_coc_roll_embed(total, tens, units, success_level=None, reason=None, secondary_rolls=None):
    
     if success_level is not None:
-        if success_level == dice.coc.SuccessLevel.CRITICAL_SUCCESS:
-            title = "Critical Success!"
-            color = C_CRITICAL_SUCCESS
-        elif success_level == dice.coc.SuccessLevel.EXTREME_SUCCESS:
-            title = "Extreme Success!"
-            color = C_SUCCESS_ADV
-        elif success_level == dice.coc.SuccessLevel.HARD_SUCCESS:
-            title = "Hard Success!"
-            color = C_HARD_SUCCESS
-        elif success_level == dice.coc.SuccessLevel.REGULAR_SUCCESS:
-            title = "Success"
-            color = C_SUCCESS
-        elif success_level == dice.coc.SuccessLevel.FAILURE:
-            title = "Failure"
-            color = C_FAILURE
-        elif success_level == dice.coc.SuccessLevel.FUMBLE:
-            title = "Fumble!"
-            color = C_FAILURE_DISADV
+        title, color = success_level_str(success_level)
+        # if success_level == dice.coc.SuccessLevel.CRITICAL_SUCCESS:
+        #     title = "Critical Success!"
+        #     color = C_CRITICAL_SUCCESS
+        # elif success_level == dice.coc.SuccessLevel.EXTREME_SUCCESS:
+        #     title = "Extreme Success!"
+        #     color = C_SUCCESS_ADV
+        # elif success_level == dice.coc.SuccessLevel.HARD_SUCCESS:
+        #     title = "Hard Success!"
+        #     color = C_HARD_SUCCESS
+        # elif success_level == dice.coc.SuccessLevel.REGULAR_SUCCESS:
+        #     title = "Success"
+        #     color = C_SUCCESS
+        # elif success_level == dice.coc.SuccessLevel.FAILURE:
+        #     title = "Failure"
+        #     color = C_FAILURE
+        # elif success_level == dice.coc.SuccessLevel.FUMBLE:
+        #     title = "Fumble!"
+        #     color = C_FAILURE_DISADV
     else:
         title = f"{total}"
         color = 0x202225
 
     description = f"**{total - units}**{' '+str(tens) if len(tens) > 1 else ''} + **{units}** = **{total}**"
-    # description += f"\n\n10: **Failure**"
-    # description += f"\n45: **Success**\n"
+    if secondary_rolls:
+        description += "\n"
+        for skill, values in secondary_rolls:
+            total, tens, units, success_level = values
+            name, _ = success_level_str(success_level)
+            description += f"\n{skill}: **{name}**"
+        description += "\n"
     if reason:
         description += f"\n**Reason**: {reason}"
     

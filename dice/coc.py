@@ -40,7 +40,7 @@ def d100(modifiers=0):
 
     return total, tens, units
 
-def roll(skill, modifiers=0):
+def roll(skill, modifiers=0, force_value=None):
     if skill < 1:
         raise DiceError("Skill is too low, I know you can do better than that!")
     if skill > 200:
@@ -48,7 +48,10 @@ def roll(skill, modifiers=0):
     if abs(modifiers) > 20:
         raise DiceError("If you need that many bonus / penalty dice I think something has gone horribly wrong (or right)...")
 
-    total, tens, units = d100(modifiers)
+    if force_value:
+        total, tens, units = force_value
+    else:
+        total, tens, units = d100(modifiers)
 
     fumble_threshold = 100 if skill >= 50 else 96
 
