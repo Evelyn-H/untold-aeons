@@ -51,7 +51,9 @@ def roll(message):
             if match.group('skill'):
                 # roll and also check what type of success it was
                 # print(match.group('skill'), match.group('skill').split(","))
-                skill_list = [int(s) for s in match.group('skill').split(",") if s]
+                # skill_list = [int(s) for s in match.group('skill').split(",") if s]
+                skill_list = [int(s) for s in re.split(r",|\s+", match.group('skill')) if s]
+                print(skill_list)
                 if len(skill_list) == 1:
                     skill = min(skill_list)  #int(match.group('skill'))
                     total, tens, units, success_level = dice.coc.roll(skill, total_modifiers)
