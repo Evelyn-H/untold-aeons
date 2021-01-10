@@ -73,6 +73,11 @@ def tips_100(message):
 def tips_100(message):
     return "☕"
 
+@bot.command(["!beerplease", "!beer", "!craftbeerplease", "!!craftbeer"])
+def tips_100(message):
+    return "🍺"
+
+
 
 
 #cinnamon roll!
