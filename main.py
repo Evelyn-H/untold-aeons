@@ -69,6 +69,11 @@ def tips_100(message):
         "The heart of a blue whale is as big as a small car.",
     ])
 
+@bot.command(["!teaplease", "!tea", "!coffeeplease", "!coffee"])
+def tips_100(message):
+    return "☕"
+
+
 
 #cinnamon roll!
 async def cinnamon(message, ctx):
