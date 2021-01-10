@@ -52,6 +52,23 @@ def tips_100(message):
         "url": "https://www.reddit.com/r/callofcthulhu/comments/8gb0fc/100_tips_for_any_nonfunctioning_call_of_cthulhu/"
     }
 
+@bot.command(["!whalefacts", "!whalefact"])
+def tips_100(message):
+    return random.choice([
+        "Male humpback whales found in U.S. waters sing complex songs in winter breeding areas in waters near Hawaii, in the Caribbean, and elsewhere that can last up to 20 minutes and be heard miles away.",
+        "The blue whale is the largest animal that ever lived and can grow to 90 or more feet and weigh as much as 24 elephants! That’s more than 330,000 pounds (150,000 kg).",
+        "Some species of whales are among the longest lived mammals. Scientists estimate bowhead whales (a baleen whale found in the Arctic) can live for more than 200 years, and killer whales (a toothed whale found in various habitats worldwide) can live for more than 100 years.",
+        "Killer whales are highly social and often travel in groups that are matrifocal—a family unit focused or centered on the mother. Learn more about the Southern Resident killer whale, a NOAA Fisheries Species in the Spotlight.",
+        "Beluga whales have flexible necks, allowing them to move their heads. Their complex communication repertoire of whistles, clicks, and chirps has prompted the nickname “canaries of the sea.” Learn more about the Cook Inlet beluga whale, a NOAA Fisheries Species in the Spotlight.",
+        "Gray whales make one of the longest annual migrations of any mammal: they travel about 10,000 miles (16,000 km) round trip!",
+        "The minke whale is the smallest baleen whale in North American waters.",
+        "North Atlantic right whales gather small organisms near the water surface, straining seawater with their long baleen plates. The whales’ surface feeding behavior and buoyancy make them vulnerable to collisions.",
+        "Sperm whales were almost driven to extinction by commercial whalers who sought the whales’ blubber and the unique oil derived from the “spermaceti organ” found in their massive heads. The spermaceti organ is a key part of their echolocation system.with ships.",
+        "In 2014, a Cuvier’s beaked whale made the deepest and longest dive ever recorded for a cetacean when it reached a depth of 1.9 miles (2,992 m) and stayed submerged for more than 2 hours.",
+        "Loud noises produced by industrial activities at sea, like drilling for oil, can damage whales’ hearing.",
+        "The heart of a blue whale is as big as a small car.",
+    ])
+
 
 #cinnamon roll!
 async def cinnamon(message, ctx):
