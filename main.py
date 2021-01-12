@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import asyncio
 from fuzzywuzzy import fuzz
@@ -85,7 +86,13 @@ async def answer(message, ctx):
         return "No answer channel found."
 
     in_channel = ctx.channel
-    await out_channel.send(f"**{in_channel.name}**: {message}")
+    match = re.match(r"^\s*(?P<number>\d+)\s*(?P<answer>.+)$", message)
+    if not match:
+        return "Please specify the number of the question and the answer.\n E.g. `!answer 4 cthulhu`"
+    
+    print(match.group('number'), "---", match.group('answer'))
+
+    await out_channel.send(f"({match.group('number')}) **{in_channel.name}**: {match.group('answer')}")
     return "Answer recorded!"
  
 bot.register_command(answer, ["!answer"], add_footer=False, fancy=True, locked=True)
