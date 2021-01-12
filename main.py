@@ -78,6 +78,19 @@ def tips_100(message):
     return "🍺"
 
 
+# for the pub-quiz
+async def answer(message, ctx):
+    out_channel = discord.utils.get(ctx.guild.channels, name='quiz-answers')
+    if not out_channel:
+        return "No answer channel found."
+
+    in_channel = ctx.channel
+    await out_channel.send(f"**{in_channel.name}**: {message}")
+    return "Answer recorded!"
+ 
+bot.register_command(answer, ["!answer"], add_footer=False, fancy=True, locked=True)
+
+
 
 
 #cinnamon roll!
