@@ -125,7 +125,7 @@ async def mention_handler(ctx):
 #  - guild intents
 #  - manage roles
 
-enabled_channel_categories = list(map(lambda i: i.lower(), ["test", "channels for one-shots", "campaigns", "the weaver's den"]))
+enabled_channel_categories = list(map(lambda i: i.lower(), ["test", "channels for one-shots", "campaigns", "the weaver's den", "pub quiz"]))
 
 # Channel shenanigans
 @client.event
