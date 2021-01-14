@@ -70,13 +70,24 @@ def tips_100(message):
         "The heart of a blue whale is as big as a small car.",
     ])
 
-@bot.command(["!teaplease", "!tea", "!coffeeplease", "!coffee"])
+@bot.command(["!coffeeplease", "!coffee"])
 def tips_100(message):
     return "☕"
 
-@bot.command(["!beerplease", "!beer", "!craftbeerplease", "!!craftbeer"])
+@bot.command(["!teaplease", "!tea"])
+def tips_100(message):
+    return "🍵"
+
+
+@bot.command(["!beerplease", "!beer", "!craftbeerplease", "!craftbeer"])
 def tips_100(message):
     return "🍺"
+
+@bot.command(["!spacemeadplease", "!spacemead"])
+def tips_100(message):
+    return random.choice(["🍹","🧋","🧉","🍶"])
+
+    
 
 
 # for the pub-quiz
