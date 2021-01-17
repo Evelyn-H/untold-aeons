@@ -46,7 +46,7 @@ def list_commands(message):
 # coin flip
 @bot.command(["!coinflip", "!coin", "!flip"])
 def coinflip(message):
-    return random.choice(["+","-"])
+    return {"title": random.choice(["+","-"])}
 
 
 
