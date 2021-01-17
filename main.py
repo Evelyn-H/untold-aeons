@@ -43,6 +43,12 @@ def list_commands(message):
 `!stats` or `!rollstats`: roll stats for CoC character creation
 """}
 
+# coin flip
+@bot.command(["!coinflip", "!coin", "!flip"])
+def coinflip(message):
+    return random.choice(["+","-"])
+
+
 
 # quick command to link the amazing 100 CoC tips guide
 @bot.command(["!100"], add_footer=False)
