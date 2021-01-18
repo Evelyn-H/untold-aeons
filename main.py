@@ -82,7 +82,7 @@ def tips_100(message):
 
 @bot.command(["!teaplease", "!tea"])
 def tips_100(message):
-    return "🍵"
+    return random.choice(["🍵", "☕"])
 
 
 @bot.command(["!beerplease", "!beer", "!craftbeerplease", "!craftbeer"])
