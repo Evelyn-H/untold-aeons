@@ -32,6 +32,50 @@ Examples:
     `!coc 50 ++-`: skill check with 2 bonus die and a penalty die, resulting in a single bonus die after cancelling out
     `!coc 70 !listen`: skill check with a skill of 70, with the reason "listen" 
 """
+
+def roll_multiple(message):
+    roll_match = r"(?P<skill>\d+)\s*(?P<modifiers>(?:t|bonus|b|\+|penalty|p|-|\s+)*)"
+    match = re.match(r"^\s*(?P<rolls>(" + roll_match + r"\s*,?\s*)*)(?:!\s*(?P<reason>.*))?$", message)
+    print(match)
+    if match:
+        reason = match.group('reason')
+        rolls = []
+        print(match.group('rolls'))
+        for roll in re.finditer(roll_match, match.group('rolls')):
+            print(roll)
+            print(roll.group('skill'), "---", roll.group('modifiers'))
+            skill = int(roll.group('skill'))
+            # this is kinda janky, but if you just count 'b', 'p', '+', and '-'
+            # and ignore other letters it'll work, cause 'bonus' and 'penalty' only contain a single of those letters each
+            positive_modifiers = roll.group('modifiers').count('b') + roll.group('modifiers').count('+')
+            negative_modifiers = roll.group('modifiers').count('p') + roll.group('modifiers').count('-')
+            total_modifiers = positive_modifiers - negative_modifiers
+            rolls.append({
+                'skill': skill,
+                'total_modifiers': total_modifiers
+            })
+        print(rolls)
+
+        if len(rolls) < 2:
+            return "Please only use this command if you want to do multiple checks at once!"
+
+        try:
+            description = ""
+            for roll in rolls:
+                total, tens, units, success_level = dice.coc.roll(roll['skill'], roll['total_modifiers'])
+                name, _ = success_level_str(success_level)
+                roll_string = f"**{total - units}**{' '+str(tens) if len(tens) > 1 else ''} + **{units}** = **{total}**"
+                description += f"{roll['skill']}: **{name}** *({total})*\n"
+            description += "\n"
+            if reason:
+                description += f"**Reason**: {reason}"
+            
+            # return {'title': title, 'description': description, 'color': color}
+            return {'title': "Multiple Rolls", 'description': description}
+        
+        except dice.DiceError as error:
+            return error.message
+
     
 # CoC Dice roll
 def roll(message):
