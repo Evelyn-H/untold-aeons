@@ -94,6 +94,11 @@ def tips_100(message):
 def tips_100(message):
     return random.choice(["🍹","🧋","🧉","🍶"])
 
+@bot.command(["!hotchocplease", "!hotchoc"])
+def tips_100(message):
+    return random.choice(["<:hotchoc:809943795985809423>"])
+ 
+
     
 
 
