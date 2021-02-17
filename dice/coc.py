@@ -55,7 +55,7 @@ def roll(skill, modifiers=0, force_value=None):
 
     fumble_threshold = 100 if skill >= 50 else 96
 
-    if total == 1:
+    if total == 1 and skill >= 10:
         success_level = SuccessLevel.CRITICAL_SUCCESS
     elif total >= fumble_threshold:
         success_level = SuccessLevel.FUMBLE
