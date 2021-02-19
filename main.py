@@ -16,7 +16,7 @@ client = discord.Client(intents=intents)
 bot = commands.Bot()
 
 # main commands
-bot.register_command(commands.roll.roll, ["!roll", "!r"], fancy=True)
+bot.register_command(commands.roll.roll, ["!roll", "!r", "/roll", "/r"], fancy=True)
 bot.register_command(commands.roll.roll_simple, ["!d"], fancy=True, require_space=False)
 bot.register_command(commands.coc.roll, ["!cocroll", "!coc", "!croll", "!c"])
 bot.register_command(commands.coc.roll_multiple, ["!c+"])
