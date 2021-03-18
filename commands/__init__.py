@@ -10,6 +10,7 @@ from . import dark
 from . import npc
 from . import roll
 from . import mothership
+from . import improvement
 
 class Command:
     def __init__(self, function, prefix, add_footer, require_space, locked):

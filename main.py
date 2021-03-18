@@ -27,6 +27,7 @@ bot.register_command(commands.mothership.roll_command, ["!mothership", "!ms"])
 bot.register_command(commands.npc.generate_npc, ["!npc"], add_footer=False)
 bot.register_command(commands.npc.generate_name, ["!names", "!name"], add_footer=False)
 bot.register_command(commands.npc.roll_stats, ["!rollstats", "!rollstat", "!stats"], add_footer=False)
+bot.register_command(commands.improvement.improvement, ["!improvement", "!improve"])
 
 # little help message for people who are used to the old bot ^^
 @bot.command(["/croll"])
