@@ -100,8 +100,15 @@ def tips_100(message):
 def tips_100(message):
     return random.choice(["<:hotchoc:809943795985809423>"])
  
+# (hopefully) temporary fix for the Friend Time bot change / confusion 
+# @bot.command(["-ft set"])
+async def friendtime_help(message, ctx):
+    if len(message.strip()) > 0:
+        # make sure this message comes after the Friend Time error message
+        await asyncio.sleep(1.0)
+        return "The timezone bot was updated.\nTry using `-ft set` (without a timezone) instead and it'll guide you through the setup."
+bot.register_command(friendtime_help, ["-ft set"], fancy=True)
 
-    
 
 
 # for the pub-quiz
