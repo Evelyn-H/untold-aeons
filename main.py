@@ -52,6 +52,24 @@ def coinflip(message):
     return {"title": random.choice(["+","-"])}
 
 
+# random card
+@bot.command(["!card", "!draw"])
+def randomcard(message):
+    # return {"title": random.choice(["+","-"])}
+    n = random.randint(1, 13)
+    suit = random.choice(["C", "S", "D", "H"])
+
+    r_desc = {1: "Ace", 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten", 11: "Jack", 12: "Queen", 13: "King"}
+    r_desc_suits = {"C": "Clubs", "S": "Spades", "D": "Diamonds", "H": "Hearts"}
+    description = f"{r_desc[n]} of {r_desc_suits[suit]}"
+
+    replacements = {1: "A", 10: "T", 11: "J", 12: "Q", 13: "K"}
+    number = replacements[n] if n in replacements else str(n) 
+    url = f"https://raw.githubusercontent.com/Xadeck/xCards/master/png/face/{number}{suit}%401x.png"
+    print(url)
+    return {"title": description, "image": {"url": url}}
+
+
 
 # quick command to link the amazing 100 CoC tips guide
 @bot.command(["!100"], add_footer=False)
