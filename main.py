@@ -70,6 +70,22 @@ def randomcard(message):
     return {"title": description, "image": {"url": url}}
 
 
+# major arcana
+def get_tarot_card(include_reverse=False):
+    card = random.randint(0, 21)
+    reversed = include_reverse and (random.randint(0, 1) is 1)
+    file = f"{card}.jpg" if not reversed else f"reverse-{card}.jpg"
+    return f'images/tarot/{file}'
+
+async def majorarcana(message, ctx):
+    await ctx.channel.send(file=get_tarot_card())
+
+async def tarot(message, ctx):
+    await ctx.channel.send(file=get_tarot_card(include_reverse=True))
+
+bot.register_command(majorarcana, ["!majorarcana"], add_footer=False, fancy=True)
+bot.register_command(tarot, ["!tarot"], add_footer=False, fancy=True)
+
 
 # quick command to link the amazing 100 CoC tips guide
 @bot.command(["!100"], add_footer=False)
