@@ -81,7 +81,7 @@ async def majorarcana(message, ctx):
     await ctx.channel.send(file=discord.File(get_tarot_card()))
 
 async def tarot(message, ctx):
-    await ctx.channel.send(file=discord.File((get_tarot_card(include_reverse=True)))
+    await ctx.channel.send(file=discord.File((get_tarot_card(include_reverse=True))))
 
 bot.register_command(majorarcana, ["!majorarcana"], add_footer=False, fancy=True)
 bot.register_command(tarot, ["!tarot"], add_footer=False, fancy=True)
